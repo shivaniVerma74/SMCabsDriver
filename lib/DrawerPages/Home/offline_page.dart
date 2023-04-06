@@ -843,7 +843,11 @@ class _OfflinePageState extends State<OfflinePage> {
                                     boxHeight(5),
                                     Divider(),
                                     boxHeight(5),
-                                    Row(
+                                    model!.bookingType
+                                        .toString()
+                                        .contains("Rental Booking")?
+                                        SizedBox.shrink()
+                                   : Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [

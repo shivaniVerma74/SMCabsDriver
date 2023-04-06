@@ -12,6 +12,7 @@ import 'package:qcabs_driver/Model/rides_model.dart';
 import 'package:qcabs_driver/Routes/page_routes.dart';
 import 'package:qcabs_driver/Locale/locale.dart';
 import 'package:qcabs_driver/Theme/style.dart';
+import 'package:qcabs_driver/rental_ride_track.dart';
 import 'package:qcabs_driver/utils/ApiBaseHelper.dart';
 import 'package:qcabs_driver/utils/Session.dart';
 import 'package:qcabs_driver/utils/colors.dart';
@@ -270,11 +271,11 @@ class _RentalRidesState extends State<RentalRides> {
                 shrinkWrap: true,
                 itemBuilder: (context, index) => rideList[index].show!?GestureDetector(
                   onTap: () {
-                   /* Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                RideInfoPage(rideList[index])));*/
+                    // Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //         builder: (context) =>
+                    //             RentalRideInfoPage(rideList[index])));
                   },
                   child: Container(
                     margin: EdgeInsets.all(getWidth(10)),
@@ -408,8 +409,9 @@ class _RentalRidesState extends State<RentalRides> {
                                   acceptStatus = true;
                                 });
                                 if(rideList[index].acceptReject=="1"){
+                                  print("this is booking id ${rideList[index].id!.toString()}");
 
-                                  startRide(rideList[index].id!, "6");
+                                  startRide(rideList[index].bookingId!, "6", index);
                                 }else{
                                   print("complete");
                                   bookingStatus(rideList[index].id!, "3");
@@ -491,7 +493,7 @@ class _RentalRidesState extends State<RentalRides> {
     }
   }
 
-  startRide(String bookingId, status1) async {
+  startRide(String bookingId, status1, int index) async {
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -557,12 +559,11 @@ class _RentalRidesState extends State<RentalRides> {
                                 color: Colors.black
                             ),),
                           onPressed: () async{
-
                             if(otpController.text.isNotEmpty && otpController.text.length == 6) {
                               setState(() {
                                 acceptStatus = false;
                               });
-                              startRideOtp(bookingId, status1);
+                              startRideOtp(bookingId, status1, index);
                             }else{
                               setState((){
                                 acceptStatus = false;
@@ -596,7 +597,7 @@ class _RentalRidesState extends State<RentalRides> {
     );
   }
 
-  startRideOtp(String bookingId,status1) async {
+  startRideOtp(String bookingId, status1, int index) async {
     await App.init();
     isNetwork = await isNetworkAvailable();
     if (isNetwork) {
@@ -606,6 +607,7 @@ class _RentalRidesState extends State<RentalRides> {
           "driver_id": curUserId,
           "accept_reject": status1.toString(),
           "booking_id": bookingId,
+          'otp': otpController.text.toString()
         };
         print("Start Ride ==== $data");
         // return;
@@ -620,8 +622,16 @@ class _RentalRidesState extends State<RentalRides> {
         });
         bool status = true;
         String msg = response['message'];
+        Navigator.pop(context);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    RentalRideInfoPage(rideList[index])));
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => MapScreen()));
         setSnackbar(msg, context);
         if (response['status']) {
+
         } else {
 
         }
