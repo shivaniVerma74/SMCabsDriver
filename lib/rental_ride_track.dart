@@ -119,11 +119,36 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
     if (isNetwork) {
       try {
         Map data;
+        Map data1;
+
         data = {
           "driver_id": curUserId,
           "accept_reject": status1.toString(),
           "booking_id": bookingId,
         };
+
+        data1 = {
+          'user_id': '2',
+          'username': 'Karan',
+          'pickup_address': '151, Ward 35, Ratna Lok Colony, Indore, Madhya Pradesh 452010, India',
+          'latitude': '22.746883699999998',
+          'longitude': '75.8980128',
+          'amount': 'null',
+          'paid_amount': 'null',
+          'gst_amount':'0.00',
+          'surge_amount':'0.00',
+          'taxi_type':'47',
+          'cancel_charge':'50.00',
+          'hours':'',
+          'start_time':'5:36 PM',
+          'end_time':'',
+          'delivery_type': '2',
+          'paymenttype': 'Cash',
+          'taxi_id': '26',
+          'transaction': 'Cash',
+          'booking_id':'5'
+        };
+
         print("COMPLETE RIDE === $data");
         // return;
         Map response = await apiBase.postAPICall(
@@ -677,17 +702,17 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                         /*setState(() {
                           acceptStatus = true;
                         });*/
-                        if(widget.model.acceptReject=="1"){
-                          /*setState(() {
-                            widget.model.acceptReject="6";
-                          });*/
-                          startRide(widget.model.bookingId!, "6");
-                        }else{
+                        // if(widget.model.acceptReject=="1"){
+                        //   /*setState(() {
+                        //     widget.model.acceptReject="6";
+                        //   });*/
+                        //   startRide(widget.model.bookingId!, "6");
+                        // }else{
                           print("complete");
                           bookingStatus(widget.model.bookingId!, "3");
-                        }
+                        // }
                       },
-                      child: !acceptStatus?Container(
+                      child: !acceptStatus? Container(
                         width: 28.w,
                         height: 5.h,
                         decoration: boxDecoration(
@@ -700,7 +725,7 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                               children: [
                                 Icon(Icons.check,color: Colors.black,),
                                 boxWidth(5),
-                                text( widget.model.acceptReject=="1" ? "Start" : "Complete",
+                                text("Complete",
                                     fontFamily: fontMedium,
                                     fontSize: 10.sp,
                                     isCentered: true,
@@ -1015,22 +1040,22 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  !widget.model.bookingType!.contains("Point")?
-                  AnimatedTextKit(
-                    animatedTexts: [
-                      ColorizeAnimatedText(
-                        "Schedule - ${widget.model.pickupDate} ${widget.model.pickupTime}",
-                        textStyle: colorizeTextStyle,
-                        colors: colorizeColors,
-                      ),
-                    ],
-                    pause: Duration(milliseconds: 100),
-                    isRepeatingAnimation: true,
-                    totalRepeatCount: 100,
-                    onTap: () {
-                      print("Tap Event");
-                    },
-                  ):SizedBox(),
+                  // !widget.model.bookingType!.contains("Point")?
+                  // AnimatedTextKit(
+                  //   animatedTexts: [
+                  //     ColorizeAnimatedText(
+                  //       "Schedule - ${widget.model.pickupDate} ${widget.model.pickupTime}",
+                  //       textStyle: colorizeTextStyle,
+                  //       colors: colorizeColors,
+                  //     ),
+                  //   ],
+                  //   pause: Duration(milliseconds: 100),
+                  //   isRepeatingAnimation: true,
+                  //   totalRepeatCount: 100,
+                  //   onTap: () {
+                  //     print("Tap Event");
+                  //   },
+                  // ):SizedBox(),
                   Container(
                     height: 100,
                     padding: EdgeInsets.all(getWidth(10)),
@@ -1149,9 +1174,9 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                                 style: theme.textTheme.headline6!
                                     .copyWith(color: theme.hintColor, fontSize: 18),
                               ),
-                              trailing: Text('${widget.model.km} km',
-                                  style: theme.textTheme.headline6!
-                                      .copyWith(fontSize: 18)),
+                              // trailing: Text('${widget.model.km} km',
+                              //     style: theme.textTheme.headline6!
+                              //         .copyWith(fontSize: 18)),
                             ),
                             ListTile(
                               leading: Icon(
@@ -1160,13 +1185,13 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                               ),
                               title: Text('${widget.model.pickupAddress}'),
                             ),
-                            ListTile(
-                              leading: Icon(
-                                Icons.navigation,
-                                color: theme.primaryColor,
-                              ),
-                              title: Text('${widget.model.dropAddress}'),
-                            ),
+                            // ListTile(
+                            //   leading: Icon(
+                            //     Icons.navigation,
+                            //     color: theme.primaryColor,
+                            //   ),
+                            //   title: Text('${widget.model.dropAddress}'),
+                            // ),
                           ],
                         ),
                       ),
@@ -1179,10 +1204,10 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                             BorderRadius.vertical(top: Radius.circular(16))),
                         child: Row(
                           children: [
-                            RowItem(
-                                getTranslated(context,"PAYMENT_VIA"),
-                                '${widget.model.transaction}',
-                                Icons.account_balance_wallet),
+                            // RowItem(
+                            //     getTranslated(context,"PAYMENT_VIA"),
+                            //     '${widget.model.transaction}',
+                            //     Icons.account_balance_wallet),
                             // Spacer(),
                             RowItem(getTranslated(context,"RIDE_FARE"),  '\u{20B9} ${widget.model.amount}',
                                 Icons.account_balance_wallet),
@@ -1196,109 +1221,108 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                         padding: EdgeInsets.all(getWidth(15)),
                         child: Column(
                           children: [
-                            double.parse(widget.model.gstAmount.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("Sub Total : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + (double.parse(widget.model.amount.toString())-double.parse(widget.model.gstAmount.toString())-double.parse(widget.model.surgeAmount.toString())).toStringAsFixed(2),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
-                            double.parse(widget.model.baseFare.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("Base fare : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + widget.model.baseFare.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
-                            double.parse(widget.model.km.toString()) >=1 ?
-                            double.parse(widget.model.ratePerKm.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("${widget.model.km.toString()} Kilometers : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + widget.model.ratePerKm.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox()
-                                : SizedBox.shrink(),
-                            widget.model.promoDiscount.toString() == null || widget.model.promoDiscount.toString() == ''?
-                            SizedBox.shrink() :
-                            double.parse(widget.model.promoDiscount.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("Promo Discount : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                                text(
-                                    "-₹" + widget.model.promoDiscount.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
-                            double.parse(widget.model.timeAmount.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("${widget.model.totalTime.toString()} Minutes : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + widget.model.timeAmount.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontRegular,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
-                            double.parse(widget.model.gstAmount.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("Taxes : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + widget.model.gstAmount.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
-
-                            double.parse(widget.model.surgeAmount.toString())>0?Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                text("Surge Amount : ",
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                                text(
-                                    "₹" + widget.model.surgeAmount.toString(),
-                                    fontSize: 10.sp,
-                                    fontFamily: fontMedium,
-                                    textColor: Colors.black),
-                              ],
-                            ):SizedBox(),
+                            // double.parse(widget.model.gstAmount.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("Sub Total : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + (double.parse(widget.model.amount.toString())-double.parse(widget.model.gstAmount.toString())-double.parse(widget.model.surgeAmount.toString())).toStringAsFixed(2),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
+                            // double.parse(widget.model.baseFare.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("Base fare : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + widget.model.baseFare.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
+                            // double.parse(widget.model.km.toString()) >=1 ?
+                            // double.parse(widget.model.ratePerKm.toString())>0? Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("${widget.model.km.toString()} Kilometers : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + widget.model.ratePerKm.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox()
+                            //     : SizedBox.shrink(),
+                            // widget.model.promoDiscount.toString() == null || widget.model.promoDiscount.toString() == ''?
+                            // SizedBox.shrink() :
+                            // double.parse(widget.model.promoDiscount.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("Promo Discount : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "-₹" + widget.model.promoDiscount.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
+                            // double.parse(widget.model.timeAmount.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("${widget.model.totalTime.toString()} Minutes : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + widget.model.timeAmount.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontRegular,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
+                            // double.parse(widget.model.gstAmount.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("Taxes : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + widget.model.gstAmount.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
+                            // double.parse(widget.model.surgeAmount.toString())>0?Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     text("Surge Amount : ",
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //     text(
+                            //         "₹" + widget.model.surgeAmount.toString(),
+                            //         fontSize: 10.sp,
+                            //         fontFamily: fontMedium,
+                            //         textColor: Colors.black),
+                            //   ],
+                            // ):SizedBox(),
                             Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,

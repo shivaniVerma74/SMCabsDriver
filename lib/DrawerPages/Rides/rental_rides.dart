@@ -3,6 +3,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/ride_info_page.dart';
@@ -410,7 +411,12 @@ class _RentalRidesState extends State<RentalRides> {
                                 });
                                 if(rideList[index].acceptReject=="1"){
                                   print("this is booking id ${rideList[index].id!.toString()}");
-
+                                  DateTime startTime = DateTime.now();
+                                  DateTime endTime = DateFormat('HH:mm:ss').parse(rideList[index].end_time.toString());
+                                  print("this is start time and end time ${startTime.toString()} ${endTime.toString()}");
+                                  Duration difference = endTime.difference(startTime);
+                                  int differenceInMinutes = difference.inMinutes;
+                                  print('Time difference in minutes: $differenceInMinutes');
                                   startRide(rideList[index].bookingId!, "6", index);
                                 }else{
                                   print("complete");
@@ -623,6 +629,7 @@ class _RentalRidesState extends State<RentalRides> {
         bool status = true;
         String msg = response['message'];
         Navigator.pop(context);
+
         Navigator.push(
             context,
             MaterialPageRoute(
