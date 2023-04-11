@@ -8,6 +8,7 @@ import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
 import 'package:qcabs_driver/Auth/Verification/UI/verification_interactor.dart';
 import 'package:qcabs_driver/Components/custom_button.dart';
 import 'package:qcabs_driver/Components/entry_field.dart';
+import 'package:qcabs_driver/DrawerPages/Profile/my_profile.dart';
 import 'package:qcabs_driver/Locale/locale.dart';
 import 'package:qcabs_driver/Locale/strings_enum.dart';
 import 'package:qcabs_driver/utils/ApiBaseHelper.dart';
@@ -208,7 +209,16 @@ class _VerificationUIState extends State<VerificationUI> {
                     ],
                   );
                 });
-          } else {
+          }
+          // else if(response['data']['is_active'].toString() == "1" && response['data']['reject'].toString() == "1"){
+          //   Navigator.pushAndRemoveUntil(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => MyProfilePage(
+          //         isActive: response['data']['is_active'].toString(),
+          //       )),
+          //           (route) => false);
+          // }
+          else {
             App.localStorage
                 .setString("userId", response['data']['id'].toString());
             curUserId = response['data']['id'].toString();

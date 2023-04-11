@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> implements LoginInteractor {
     if(App.localStorage.getString("userId")!=null){
       curUserId = App.localStorage.getString("userId").toString();
       GetLocation location = new GetLocation((result){
-    /*    address = result.first.addressLine;
+        /*    address = result.first.addressLine;
         latitude = result.first.coordinates.latitude;
         longitude = result.first.coordinates.longitude;*/
       });

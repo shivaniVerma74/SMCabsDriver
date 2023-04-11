@@ -60,6 +60,8 @@ String rating = "0";
 bool notification = true;
 String gender1 = "",dob = "";
 String profileStatus = "";
+String isActive = '';
+String reject = '';
 String razorPayKey="rzp_test_UUBtmcArqOLqIY";
 String razorPaySecret="NTW3MUbXOtcwUrz5a4YCshqk";
 final String baseUrl1 = 'https://developmentalphawizz.com/taxi/api/';

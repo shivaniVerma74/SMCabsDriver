@@ -41,6 +41,7 @@ class _AccountPageState extends State<AccountPage> with TickerProviderStateMixin
         "driver_id": curUserId,
         "type": type.toString().toLowerCase(),
       };
+      print("this is parameters =======>>>> $url and $params");
       Map response =
       await apiBase.postAPICall(Uri.parse(baseUrl1 + url), params);
       setState(() {

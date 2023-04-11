@@ -171,7 +171,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
         context: context,
         initialDate: startDate,
         firstDate: DateTime(1900),
-        lastDate: DateTime(2023));
+        lastDate: DateTime.now());
     if (picked != null) {
       setState(() {
         startDate = picked;
@@ -304,7 +304,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
                       EntryField(
                         controller: emailCon,
                         keyboardType: TextInputType.emailAddress,
-                        label: getTranslated(context,Strings.EMAIL_ADD),
+                        label: "${getTranslated(context,Strings.EMAIL_ADD)} (optional)",
                       ),
                       gender.length>0?EntryField(
                         maxLength: 10,
@@ -604,10 +604,10 @@ class _RegistrationUIState extends State<RegistrationUI> {
               setSnackbar("Please Enter Full Name", context);
               return;
             }
-            if(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email")!=null){
-              setSnackbar(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email").toString(), context);
-              return;
-            }
+            // if(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email")!=null){
+            //   setSnackbar(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email").toString(), context);
+            //   return;
+            // }
             if(genderCon.text==""){
               setSnackbar("Please Select Gender", context);
               return ;

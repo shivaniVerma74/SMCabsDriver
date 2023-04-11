@@ -52,12 +52,14 @@
 // }
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:qcabs_driver/Components/row_item.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
@@ -108,9 +110,25 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
     return Future.value();
   }
 
+  double calculateDistance(lat1, lon1, lat2, lon2) {
+    try {
+      var p = 0.017453292519943295;
+      var c = cos;
+      var a = 0.5 -
+          c((lat2 - lat1) * p) / 2 +
+          c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+      return 12742 * asin(sqrt(a));
+    } on Exception catch (exception) {
+      return 0; // only executed if error is of type Exception
+    } catch (error) {
+      return 0; // executed for errors of all types other than Exception
+    }
+  }
+
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
   bool acceptStatus = false;
+  double distance =0;
   TextEditingController otpController = TextEditingController();
 
   bookingStatus(String bookingId,status1) async {
@@ -155,6 +173,72 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
             Uri.parse(
                 baseUrl1+"payment/complete_ride_driver"),
             data);
+        print(response);
+        print(response);
+        setState(() {
+          acceptStatus = false;
+        });
+        bool status = true;
+        String msg = response['message'];
+        setSnackbar(msg, context);
+        if (response['status']) {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> OfflinePage("")), (route) => false);
+        } else {
+
+        }
+      } on TimeoutException catch (_) {
+        setSnackbar("Something Went Wrong", context);
+      }
+    } else {
+      setSnackbar("No Internet Connection", context);
+    }
+  }
+
+  completeRentalRide(String bookingId,status1) async {
+
+   print("this is distance =====>>>>> ${distance.toString()}");
+    await App.init();
+    isNetwork = await isNetworkAvailable();
+    if (isNetwork) {
+      try {
+        Map data;
+        Map data1;
+
+        // data = {
+        //   "driver_id": curUserId,
+        //   "accept_reject": status1.toString(),
+        //   "booking_id": bookingId,
+        // };
+
+
+        data1 = {
+          'user_id': curUserId,
+          'username': widget.model.username.toString(),
+          'pickup_address': widget.model.pickupAddress.toString(),
+          'latitude': widget.model.latitude.toString(),
+          'longitude': widget.model.latitude.toString(),
+          'amount': widget.model.amount.toString(),
+          'paid_amount': widget.model.paidAmount.toString(),
+          'gst_amount':widget.model.gstAmount.toString(),
+          'surge_amount':widget.model.surgeAmount.toString(),
+          'taxi_type':widget.model.taxiType.toString(),
+          'cancel_charge':'20',
+          'hours': '',
+          'start_time':widget.model.start_time.toString(),
+          'end_time': DateFormat.jm().format(DateTime.now()),
+          'delivery_type': '2',
+          'paymenttype': 'Cash',
+          'taxi_id': '26',
+          'transaction': 'Cash',
+          'booking_id':widget.model.bookingId.toString(),
+        };
+
+        print("COMPLETE RIDE === $data1");
+        // return;
+        Map response = await apiBase.postAPICall(
+            Uri.parse(
+                baseUrl1+"Payment/complete_rental_ride"),
+            data1);
         print(response);
         print(response);
         setState(() {
@@ -699,6 +783,13 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                     // ):SizedBox():
                     InkWell(
                       onTap: () {
+                        _getCurrentLocation();
+                        DateTime endTime = DateTime.now();
+                        DateTime startTime = DateFormat('HH:mm:ss').parse(widget.model.start_time.toString());
+                        print("this is start time and end time ${startTime.toString()} ${endTime.toString()}");
+                        Duration difference = endTime.difference(startTime);
+                        int differenceInMinutes = difference.inMinutes;
+                        print('Time difference in minutes: $differenceInMinutes');
                         /*setState(() {
                           acceptStatus = true;
                         });*/
@@ -709,7 +800,9 @@ class _RentalRideInfoPageState extends State<RentalRideInfoPage> {
                         //   startRide(widget.model.bookingId!, "6");
                         // }else{
                           print("complete");
-                          bookingStatus(widget.model.bookingId!, "3");
+                         distance = calculateDistance(widget.model.latitude, widget.model.longitude, _position.latitude, _position.longitude);
+                          completeRentalRide(widget.model.bookingId!, "3");
+                          // bookingStatus(widget.model.bookingId!, "3");
                         // }
                       },
                       child: !acceptStatus? Container(

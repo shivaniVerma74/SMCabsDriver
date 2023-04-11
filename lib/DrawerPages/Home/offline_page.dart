@@ -640,6 +640,8 @@ class _OfflinePageState extends State<OfflinePage> {
         accountNumber = data['account_number'];
         code = data['ifsc_code'];
         profileStatus = data['profile_status'];
+        isActive = data['is_active'];
+        reject = data['reject'];
         print("dta" + data['profile_status']);
         refer = data['referral_code'];
       } else {

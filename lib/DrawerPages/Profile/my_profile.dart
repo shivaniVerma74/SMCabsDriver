@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker_gallery_camera/image_picker_gallery_camera.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/Locale/locale.dart';
 import 'package:qcabs_driver/Model/cab_model.dart';
@@ -24,7 +25,10 @@ import '../../Components/entry_field.dart';
 import '../../Locale/strings_enum.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+
 class MyProfilePage extends StatefulWidget {
+  final String? isActive;
+  const MyProfilePage({Key? key, this.isActive}) : super(key: key);
   @override
   _MyProfilePageState createState() => _MyProfilePageState();
 }
@@ -44,7 +48,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   @override
   void initState() {
     super.initState();
-
+    // getProfile();
     nameCon.text = name;
     emailCon.text = email;
     vehicleCon.text = number;
@@ -58,7 +62,67 @@ class _MyProfilePageState extends State<MyProfilePage> {
     modelId = model2;
     getCab();
   }
+  getProfile() async {
+    try {
+      // setState(() {
+      //   saveStatus = false;
+      // });
+      Map params = {
+        "user_id": curUserId.toString(),
+      };
+      Map response = await apiBase.postAPICall(
+          Uri.parse(baseUrl + "get_profile_driver"), params);
+      // setState(() {
+      //   saveStatus = true;
+      // });
+      if (response['status']) {
+        var data = response["data"];
+        print(data);
+        name = data['user_name'];
+        mobile = data['phone'];
+        email = data['email'];
+        gender1 = data['gender'];
+        homeAddress = data['home_address'];
+        // walletAccount = data['wallet_amount'];
+        dob = data['dob'];
+        if (response['rating'] != null) {
+          rating =
+              double.parse(response['rating'].toString()).toStringAsFixed(2);
+        }
+        image =
+            response['image_path'].toString() + data['user_image'].toString();
+        drivingImage = response['image_path'].toString() +
+            data['driving_licence_photo'].toString();
+        print(image);
+        imagePath = response['image_path'].toString();
+        panCard = imagePath + data['pan_card'].toString();
+        adharCard = imagePath + data['aadhar_card'].toString();
+        vehicle = imagePath + data['vehical_imege'].toString();
+        insurance = imagePath + data['insurance'].toString();
+        cheque = imagePath + data['bank_chaque'].toString();
+        brand = data['car_type'];
+        model2 = data['car_model'];
+        number = data['car_no'];
+        bankName = data['bank_name'];
+        accountNumber = data['account_number'];
+        code = data['ifsc_code'];
+        profileStatus = data['profile_status'];
+        isActive = data['is_active'];
+        reject = data['reject'];
+        print("dta" + data['profile_status']);
+        refer = data['referral_code'];
+      } else {
+        setSnackbar(response['message'], context);
+      }
+    } on TimeoutException catch (_) {
+      setSnackbar("Something Went Wrong", context);
+      // setState(() {
+      //   saveStatus = true;
+      // });
+    }
+  }
   DateTime startDate = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day);
+
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
@@ -72,6 +136,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
       });
     }
   }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -491,40 +556,42 @@ class _MyProfilePageState extends State<MyProfilePage> {
              child: CustomButton(
                 text: getTranslated(context, "Updateprofile")!,
                 onTap: profileStatus=="0"?(){
+
                   setSnackbar("Please Wait For Review", context);
                 }:(){
-                 /* if(mobileCon.text==""||mobileCon.text.length!=10){
+                  /* if(mobileCon.text==""||mobileCon.text.length!=10){
                     setSnackbar("Please Enter Valid Mobile Number", context);
                     return ;
                   }*/
                   if(validateField(nameCon.text, "Please Enter Full Name")!=null){
-                    setSnackbar("Please Enter Full Name", context);
-                    return;
+                  setSnackbar("Please Enter Full Name", context);
+                  return;
                   }
                   if(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email")!=null){
-                    setSnackbar(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email").toString(), context);
-                    return;
+                  setSnackbar(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email").toString(), context);
+                  return;
                   }
                   if(vehicleCon.text==""||vehicleCon.text.length!=10){
-                    setSnackbar("Please Enter Valid Vehicle Number", context);
-                    return ;
+                  setSnackbar("Please Enter Valid Vehicle Number", context);
+                  return ;
                   }
                   if(accountCon.text==""||accountCon.text.length<10){
-                    setSnackbar("Please Enter Valid Account Number", context);
-                    return ;
+                  setSnackbar("Please Enter Valid Account Number", context);
+                  return ;
                   }
                   if(bankCon.text==""){
-                    setSnackbar("Please Enter Valid Bank Name", context);
-                    return ;
+                  setSnackbar("Please Enter Valid Bank Name", context);
+                  return ;
                   }
                   if(codeCon.text==""||codeCon.text.length!=11){
-                    setSnackbar("Please Enter Valid Code", context);
-                    return ;
+                  setSnackbar("Please Enter Valid Code", context);
+                  return ;
                   }
                   setState(() {
-                    loading =true;
+                  loading =true;
                   });
                   submitSubscription();
+
                 },
               ),
            ),
@@ -657,7 +724,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
           if (data['status']) {
             Map info = data['data'];
             setSnackbar(data['message'].toString(), context);
-            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> OfflinePage("")), (route) => false);
+            if(isActive == "1" && reject == "1") {
+              await App.init();
+              App.localStorage.clear();
+              //Common().toast("Logout");
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> LoginPage()), (route) => false);
+            }else{
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) => OfflinePage("")), (
+                      route) => false);
+            }
           } else {
             setSnackbar(data['message'].toString(), context);
           }
