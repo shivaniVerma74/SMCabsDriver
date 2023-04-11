@@ -45,6 +45,7 @@ class OfflinePage extends StatefulWidget {
   @override
   _OfflinePageState createState() => _OfflinePageState();
 }
+
 class _OfflinePageState extends State<OfflinePage> {
   bool isOnline = false;
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
@@ -64,11 +65,10 @@ class _OfflinePageState extends State<OfflinePage> {
         context: context,
         onResult: (result) {
           print("boook" + result.toString());
-          if(result != null){
+          if (result != null) {
             if (result == "yes") {
               registerToken();
-            }
-            else {
+            } else {
               getBookingInfo(result);
             }
           }
@@ -161,10 +161,10 @@ class _OfflinePageState extends State<OfflinePage> {
       print("BOOKING STATUS === $currentBookingStatus");
       if (response['status']) {
         var v = response["data"];
-        if(mounted)
-        setState(() {
-          model = MyRideModel.fromJson(v);
-        });
+        if (mounted)
+          setState(() {
+            model = MyRideModel.fromJson(v);
+          });
         /* showConfirm(RidesModel(v['id'], v['user_id'], v['username'], v['uneaque_id'], v['purpose'], v['pickup_area'],
             v['pickup_date'], v['drop_area'], v['pickup_time'], v['area'], v['landmark'], v['pickup_address'], v['drop_address'],
             v['taxi_type'], v['departure_time'], v['departure_date'], v['return_date'], v['flight_number'], v['package'],
@@ -212,7 +212,7 @@ class _OfflinePageState extends State<OfflinePage> {
             MaterialPageRoute(builder: (context) => RideInfoPage(model1!)));
         /* showConfirm(RidesModel(v['id'], v['user_id'], v['username'], v['uneaque_id'], v['purpose'], v['pickup_area'],
             v['pickup_date'], v['drop_area'], v['pickup_time'], v['area'], v['landmark'], v['pickup_address'], v['drop_address'],
-            v['taxi_type'], v['departure_time'], v['departure_date'], v['return_date'], v['flight_number'], v['package'],
+            v['taxi_type'], v['deparddddddture_time'], v['departure_date'], v['return_date'], v['flight_number'], v['package'],
             v['promo_code'], v['distance'], v['amount'], v['paid_amount'], v['address'], v['transfer'], v['item_status'],
             v['transaction'], v['payment_media'], v['km'], v['timetype'], v['assigned_for'], v['is_paid_advance'], v['status'], v['latitude'], v['longitude'], v['date_added'],
             v['drop_latitude'], v['drop_longitude'], v['booking_type'], v['accept_reject'], v['created_date']));*/
@@ -227,6 +227,7 @@ class _OfflinePageState extends State<OfflinePage> {
       });
     }
   }
+
   String totalRide = "";
   String totalAmount = "";
 
@@ -270,6 +271,7 @@ class _OfflinePageState extends State<OfflinePage> {
       });
     }
   }
+
   showConfirm(MyRideModel model) {
     showDialog(
         context: context,
@@ -350,19 +352,21 @@ class _OfflinePageState extends State<OfflinePage> {
                     ],
                   ),
                   boxHeight(10),
-                  model.sharing_type!=null&&model.sharing_type!=""?Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      text("Sharing Type : ",
-                          fontSize: 10.sp,
-                          fontFamily: fontMedium,
-                          textColor: Colors.black),
-                      text(model.sharing_type!,
-                          fontSize: 10.sp,
-                          fontFamily: fontMedium,
-                          textColor: Colors.black),
-                    ],
-                  ):SizedBox(),
+                  model.sharing_type != null && model.sharing_type != ""
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            text("Sharing Type : ",
+                                fontSize: 10.sp,
+                                fontFamily: fontMedium,
+                                textColor: Colors.black),
+                            text(model.sharing_type!,
+                                fontSize: 10.sp,
+                                fontFamily: fontMedium,
+                                textColor: Colors.black),
+                          ],
+                        )
+                      : SizedBox(),
                   boxHeight(10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -772,9 +776,9 @@ class _OfflinePageState extends State<OfflinePage> {
                     : SizedBox())),
             /*Image.asset('assets/delivery_boy.png'),*/
             title: Text('${totalRide} ' +
-                getTranslated(context,Strings.RIDES)!.toUpperCase() +
+                getTranslated(context, Strings.RIDES)!.toUpperCase() +
                 ' | \u{20B9}${totalAmount}'),
-            subtitle: Text(getTranslated(context,Strings.TODAY)!),
+            subtitle: Text(getTranslated(context, Strings.TODAY)!),
           ),
         ),
       ),
@@ -825,44 +829,49 @@ class _OfflinePageState extends State<OfflinePage> {
                                       ],
                                     ),
                                     boxHeight(5),
-                                    model!.dropAddress!=null?Row(
-                                      children: [
-                                        Container(
-                                          height: 10,
-                                          width: 10,
-                                          decoration: boxDecoration(
-                                              radius: 100, bgColor: Colors.red),
-                                        ),
-                                        boxWidth(10),
-                                        Expanded(
-                                            child: text(
-                                                model!.dropAddress.toString(),
-                                                fontSize: 9.sp,
-                                                fontFamily: fontRegular,
-                                                textColor: Colors.black)),
-                                      ],
-                                    ):SizedBox(),
+                                    model!.dropAddress != null
+                                        ? Row(
+                                            children: [
+                                              Container(
+                                                height: 10,
+                                                width: 10,
+                                                decoration: boxDecoration(
+                                                    radius: 100,
+                                                    bgColor: Colors.red),
+                                              ),
+                                              boxWidth(10),
+                                              Expanded(
+                                                  child: text(
+                                                      model!.dropAddress
+                                                          .toString(),
+                                                      fontSize: 9.sp,
+                                                      fontFamily: fontRegular,
+                                                      textColor: Colors.black)),
+                                            ],
+                                          )
+                                        : SizedBox(),
                                     boxHeight(5),
                                     Divider(),
                                     boxHeight(5),
                                     model!.bookingType
-                                        .toString()
-                                        .contains("Rental Booking")?
-                                        SizedBox.shrink()
-                                   : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        text("Payment Mode : ",
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                        text(model!.transaction.toString(),
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                      ],
-                                    ),
+                                            .toString()
+                                            .contains("Rental Booking")
+                                        ? SizedBox.shrink()
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              text("Payment Mode : ",
+                                                  fontSize: 10.sp,
+                                                  fontFamily: fontMedium,
+                                                  textColor: Colors.black),
+                                              text(
+                                                  model!.transaction.toString(),
+                                                  fontSize: 10.sp,
+                                                  fontFamily: fontMedium,
+                                                  textColor: Colors.black),
+                                            ],
+                                          ),
                                     boxHeight(5),
                                     !model!.bookingType
                                             .toString()
@@ -871,8 +880,11 @@ class _OfflinePageState extends State<OfflinePage> {
                                             animatedTexts: [
                                               ColorizeAnimatedText(
                                                 model!.bookingType
-                                                    .toString()
-                                                    .contains("Rental Booking")?"Rental Booking - ${model!.start_time} - ${model!.end_time}":"Schedule - ${model!.pickupDate} ${model!.pickupTime}",
+                                                        .toString()
+                                                        .contains(
+                                                            "Rental Booking")
+                                                    ? "Rental Booking - ${model!.start_time} - ${model!.end_time}"
+                                                    : "Schedule - ${model!.pickupDate} ${model!.pickupTime}",
                                                 textStyle: colorizeTextStyle,
                                                 colors: colorizeColors,
                                               ),
@@ -905,7 +917,8 @@ class _OfflinePageState extends State<OfflinePage> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        text("${getTranslated(context, "Earningamount")!} : ",
+                                        text(
+                                            "${getTranslated(context, "Earningamount")!} : ",
                                             fontSize: 10.sp,
                                             fontFamily: fontMedium,
                                             textColor: Colors.black),
@@ -920,15 +933,22 @@ class _OfflinePageState extends State<OfflinePage> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        text(model!.bookingType
-                                            .toString()
-                                            .contains("Rental Booking")?"Hours : ":"Distance : ",
+                                        text(
+                                            model!.bookingType
+                                                    .toString()
+                                                    .contains("Rental Booking")
+                                                ? "Hours : "
+                                                : "Distance : ",
                                             fontSize: 10.sp,
                                             fontFamily: fontMedium,
                                             textColor: Colors.black),
-                                        text(model!.bookingType
-                                            .toString()
-                                            .contains("Rental Booking")?model!.hours.toString() + " hrs":model!.km.toString() + " km",
+                                        text(
+                                            model!.bookingType
+                                                    .toString()
+                                                    .contains("Rental Booking")
+                                                ? model!.hours.toString() +
+                                                    " hrs"
+                                                : model!.km.toString() + " km",
                                             fontSize: 10.sp,
                                             fontFamily: fontMedium,
                                             textColor: Colors.black),
@@ -999,9 +1019,11 @@ class _OfflinePageState extends State<OfflinePage> {
                                                   ],
                                                 )
                                               : SizedBox(),
-                                          model!.baseFare!=null&&model!.baseFare! is double&&double.parse(model!.baseFare
-                                                      .toString()) >
-                                                  0
+                                          model!.baseFare != null &&
+                                                  model!.baseFare! is double &&
+                                                  double.parse(model!.baseFare
+                                                          .toString()) >
+                                                      0
                                               ? Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
@@ -1023,7 +1045,10 @@ class _OfflinePageState extends State<OfflinePage> {
                                                   ],
                                                 )
                                               : SizedBox(),
-                                          model!.ratePerKm!=null&&model!.ratePerKm! is double&&double.parse(model!.km.toString()) >=
+                                          model!.ratePerKm != null &&
+                                                  model!.ratePerKm! is double &&
+                                                  double.parse(model!.km
+                                                          .toString()) >=
                                                       2 &&
                                                   double.parse(model!.ratePerKm
                                                           .toString()
@@ -1054,9 +1079,12 @@ class _OfflinePageState extends State<OfflinePage> {
                                                   ],
                                                 )
                                               : SizedBox(),
-                                          model!.timeAmount!=null&&model!.timeAmount! is double&&double.parse(model!.timeAmount
-                                                      .toString()) >
-                                                  0
+                                          model!.timeAmount != null &&
+                                                  model!.timeAmount!
+                                                      is double &&
+                                                  double.parse(model!.timeAmount
+                                                          .toString()) >
+                                                      0
                                               ? Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
@@ -1181,14 +1209,15 @@ class _OfflinePageState extends State<OfflinePage> {
                                               ),
                                               InkWell(
                                                 onTap: () async {
-                                                  if (currentBookingStatus == true) {
+                                                  if (currentBookingStatus ==
+                                                      true) {
                                                     setState(() {
                                                       acceptStatus = true;
                                                       condition = true;
                                                     });
-                                                      bookingStatus(
-                                                          model!.id.toString(),
-                                                          "1");
+                                                    bookingStatus(
+                                                        model!.id.toString(),
+                                                        "1");
                                                   } else {
                                                     setState(() {
                                                       condition = true;
@@ -1354,9 +1383,11 @@ class _OfflinePageState extends State<OfflinePage> {
                                   },
                                   child: Text(
                                       current != 1
-                                          ? getTranslated(context,Strings.YOU_RE_ONLINE)!
+                                          ? getTranslated(context,
+                                                  Strings.YOU_RE_ONLINE)!
                                               .toUpperCase()
-                                          : getTranslated(context,Strings.YOU_RE_OFFLINE)!
+                                          : getTranslated(context,
+                                                  Strings.YOU_RE_OFFLINE)!
                                               .toUpperCase(),
                                       style: Theme.of(context)
                                           .textTheme
