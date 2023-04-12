@@ -31,7 +31,7 @@ dependencies:
   #  charts_flutter: ^0.10.0
   cached_network_image: 
   animation_wrappers: ^0.0.4
-  location: ^4.3.0
+  location: ^4.4.0
   geocoder: ^0.2.1
   google_maps_place_picker_mb: ^2.0.0-mb.16
   google_maps_flutter: ^2.0.6
@@ -39,12 +39,13 @@ dependencies:
   flutter_polyline_points: ^1.0.0
   google_mobile_ads: ^0.13.2
   equatable: ^2.0.3
+
   image_picker_gallery_camera: ^0.2.2
   flutter_local_notifications: ^9.0.0
   path_provider: ^2.0.2
   firebase_core: ^1.11.0
   firebase_messaging: ^10.0.4
-  permission_handler: ^8.3.0
+  permission_handler: ^10.2.0
   social_share: ^2.2.1
   url_launcher: ^6.0.17
   awesome_notifications: ^0.6.21
@@ -59,6 +60,8 @@ dev_dependencies:
   flutter_launcher_icons: "^0.9.0"
 dependency_overrides:
   file: ^6.1.4
+  geolocator: ^9.0.2
+
 flutter_icons:
   android: "ic_launcher"
   ios: true

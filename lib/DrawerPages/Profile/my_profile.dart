@@ -34,47 +34,37 @@ class MyProfilePage extends StatefulWidget {
 }
 
 class _MyProfilePageState extends State<MyProfilePage> {
-  TextEditingController _nameController =
-      TextEditingController();
-  TextEditingController _emailController =
-      TextEditingController();
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
   TextEditingController genderCon = new TextEditingController();
   TextEditingController dobCon = new TextEditingController();
   TextEditingController modelCon = new TextEditingController();
   TextEditingController bankCon = new TextEditingController();
   TextEditingController accountCon = new TextEditingController();
   TextEditingController codeCon = new TextEditingController();
-  List<String> gender = ["Male","Female","Other"];
+  List<String> gender = ["Male", "Female", "Other"];
+  bool saveStatus = true;
   @override
   void initState() {
     super.initState();
-    // getProfile();
-    nameCon.text = name;
-    emailCon.text = email;
-    vehicleCon.text = number;
-    carCon.text = brand;
-    genderCon.text = gender1;
-    dobCon.text = dob;
-    bankCon.text = bankName;
-    codeCon.text = code;
-    accountCon.text = accountNumber;
-    carCon.text = brand;
-    modelId = model2;
+    getProfile();
+
     getCab();
   }
+
   getProfile() async {
     try {
-      // setState(() {
-      //   saveStatus = false;
-      // });
+      setState(() {
+        saveStatus = true;
+      });
       Map params = {
         "user_id": curUserId.toString(),
       };
       Map response = await apiBase.postAPICall(
           Uri.parse(baseUrl + "get_profile_driver"), params);
-      // setState(() {
-      //   saveStatus = true;
-      // });
+      setState(() {
+        saveStatus = false;
+      });
       if (response['status']) {
         var data = response["data"];
         print(data);
@@ -110,18 +100,31 @@ class _MyProfilePageState extends State<MyProfilePage> {
         isActive = data['is_active'];
         reject = data['reject'];
         print("dta" + data['profile_status']);
+        nameCon.text = name;
+        emailCon.text = email;
+        vehicleCon.text = number;
+        carCon.text = brand;
+        genderCon.text = gender1;
+        dobCon.text = dob;
+        bankCon.text = bankName;
+        codeCon.text = code;
+        accountCon.text = accountNumber;
+        carCon.text = brand;
+        modelId = model2;
         refer = data['referral_code'];
       } else {
-        setSnackbar(response['message'], context);
+       // setSnackbar(response['message'], context);
       }
     } on TimeoutException catch (_) {
       setSnackbar("Something Went Wrong", context);
-      // setState(() {
-      //   saveStatus = true;
-      // });
+      setState(() {
+        saveStatus = true;
+      });
     }
   }
-  DateTime startDate = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day);
+
+  DateTime startDate =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -143,34 +146,45 @@ class _MyProfilePageState extends State<MyProfilePage> {
     _emailController.dispose();
     super.dispose();
   }
+
   PersistentBottomSheetController? persistentBottomSheetController1;
-  showBottom1()async{
-    persistentBottomSheetController1 = await scaffoldKey.currentState!.showBottomSheet((context) {
+  showBottom1() async {
+    persistentBottomSheetController1 =
+        await scaffoldKey.currentState!.showBottomSheet((context) {
       return Container(
-        decoration: boxDecoration(radius: 0,showShadow: true,color: Colors.white),
+        decoration:
+            boxDecoration(radius: 0, showShadow: true, color: Colors.white),
         padding: EdgeInsets.all(getWidth(20)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             boxHeight(20),
-            text("Select Gender",textColor: MyColorName.colorTextPrimary,fontSize: 12.sp,fontFamily: fontBold),
+            text("Select Gender",
+                textColor: MyColorName.colorTextPrimary,
+                fontSize: 12.sp,
+                fontFamily: fontBold),
             boxHeight(20),
             Container(
               child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: gender.length,
-                  itemBuilder:(context, index) {
-                    return  InkWell(
-                      onTap: (){
-                        persistentBottomSheetController1!.setState!((){
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () {
+                        persistentBottomSheetController1!.setState!(() {
                           genderCon.text = gender[index];
                         });
                         Navigator.pop(context);
                       },
                       child: Container(
-                        color: genderCon.text==gender[index]?MyColorName.primaryLite.withOpacity(0.2):Colors.white,
+                        color: genderCon.text == gender[index]
+                            ? MyColorName.primaryLite.withOpacity(0.2)
+                            : Colors.white,
                         padding: EdgeInsets.all(getWidth(10)),
-                        child: text(gender[index].toString(),textColor: MyColorName.colorTextPrimary,fontSize: 10.sp,fontFamily: fontMedium),
+                        child: text(gender[index].toString(),
+                            textColor: MyColorName.colorTextPrimary,
+                            fontSize: 10.sp,
+                            fontFamily: fontMedium),
                       ),
                     );
                   }),
@@ -178,431 +192,583 @@ class _MyProfilePageState extends State<MyProfilePage> {
             boxHeight(40),
           ],
         ),
-
       );
     });
   }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(),
-      body: FadedSlideAnimation(
-        SingleChildScrollView(
-          child: Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
+      body: !saveStatus
+          ? SingleChildScrollView(
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Stack(
                       children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            getTranslated(context,Strings.MY_PROFILE)!,
-                            style: theme.textTheme.headline4,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 24),
+                              child: Text(
+                                getTranslated(context, Strings.MY_PROFILE)!,
+                                style: theme.textTheme.headline4,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
+                              child: Text(
+                                getTranslated(
+                                    context, Strings.YOUR_ACCOUNT_DETAILS)!,
+                                style: theme.textTheme.bodyText2!
+                                    .copyWith(color: theme.hintColor),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(top: 72),
+                              height: 72,
+                              color: theme.backgroundColor,
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 16),
-                          child: Text(
-                            getTranslated(context,Strings.YOUR_ACCOUNT_DETAILS)!,
-                            style: theme.textTheme.bodyText2!
-                                .copyWith(color: theme.hintColor),
+                        PositionedDirectional(
+                          start: 24,
+                          top: 80,
+                          child: InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 1);
+                            },
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: _image == null
+                                    ? Image.network(
+                                        image,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                        colorBlendMode: profileStatus == "0"
+                                            ? BlendMode.hardLight
+                                            : BlendMode.color,
+                                        color: profileStatus == "0"
+                                            ? Colors.white.withOpacity(0.4)
+                                            : Colors.transparent,
+                                      )
+                                    : Image.file(
+                                        _image!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                      ),
+                              ),
+                            ),
                           ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 72),
-                          height: 72,
-                          color: theme.backgroundColor,
                         ),
                       ],
                     ),
-                    PositionedDirectional(
-                      start: 24,
-                      top: 80,
-                      child: InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 1);
-                        },
-                        child: Container(
-                          height: 100,
-                          width: 100,
-                          child:ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: _image==null?Image.network(image,height: 100,width: 100,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(_image!,height: 100,width: 100,fit: BoxFit.fill,),
+                    Container(
+                      color: theme.backgroundColor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          EntryField(
+                            label: getTranslated(context, "ENTER_PHONE")!,
+                            initialValue: mobile,
+                            readOnly: true,
                           ),
-                        ),
+                          EntryField(
+                            label: getTranslated(context, Strings.FULL_NAME),
+                            controller: nameCon,
+                            keyboardType: TextInputType.name,
+                          ),
+                          EntryField(
+                            label: getTranslated(context, Strings.EMAIL_ADD),
+                            controller: emailCon,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          gender.length > 0
+                              ? EntryField(
+                                  maxLength: 10,
+                                  readOnly: true,
+                                  controller: genderCon,
+                                  onTap: () {
+                                    showBottom1();
+                                  },
+                                  label: getTranslated(context, "GENDER")!,
+                                )
+                              : SizedBox(),
+                          EntryField(
+                            label: getTranslated(context, "DOB")!,
+                            controller: dobCon,
+                            readOnly: true,
+                            onTap: () {
+                              selectDate(context);
+                            },
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          SizedBox(height: 28),
+                          // Divider(
+                          //   color: Colors.black,
+                          //   thickness: 5,
+                          // ),
+                          SizedBox(height: 20),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              getTranslated(context, Strings.CAR_INFO)!,
+                              style: theme.textTheme.headline4,
+                            ),
+                          ),
+                          EntryField(
+                            controller: carCon,
+                            //initialValue: brand,
+                            onTap: () {
+                              ///  showBottom();
+                            },
+                            label: getTranslated(context, Strings.CAR_BRAND),
+                            hint: getTranslated(
+                                context, Strings.SELECT_CAR_BRAND),
+                            suffixIcon: Icon(Icons.arrow_drop_down),
+                            readOnly: true,
+                          ),
+                          carCon.text.toLowerCase() != "bike"
+                              ? EntryField(
+                                  onTap: () {
+                                    showBottom2();
+                                  },
+                                  controller: modelCon,
+                                  readOnly: true,
+                                  label:
+                                      getTranslated(context, Strings.CAR_MODEL),
+                                  hint: getTranslated(
+                                      context, Strings.SELECT_CAR_MODEL),
+                                  suffixIcon: Icon(Icons.arrow_drop_down),
+                                )
+                              : SizedBox(),
+                          EntryField(
+                            //    initialValue: number,
+                            controller: vehicleCon,
+                            label: getTranslated(context, Strings.VEHICLE_NUM),
+                            hint: getTranslated(
+                                context, Strings.ENTER_VEHICLE_NUM),
+                          ),
+                          SizedBox(height: 20),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              getTranslated(context, "BANK_INFO")!,
+                              style: theme.textTheme.headline4,
+                            ),
+                          ),
+                          EntryField(
+                            maxLength: 16,
+                            keyboardType: TextInputType.phone,
+                            controller: accountCon,
+                            label: getTranslated(context, "Accountnumber")!,
+                            hint: "",
+                          ),
+                          EntryField(
+                            keyboardType: TextInputType.text,
+                            controller: bankCon,
+                            label: getTranslated(context, "BANK_NAME")!,
+                            hint: "",
+                          ),
+                          EntryField(
+                            maxLength: 11,
+                            keyboardType: TextInputType.text,
+                            controller: codeCon,
+                            label: getTranslated(context, "BANK_CODE")!,
+                            hint: "",
+                          ),
+                          SizedBox(height: 20),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              getTranslated(context, Strings.DOCUMENT)!,
+                              style: theme.textTheme.headline4,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "UPLOAD_Drive")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 5);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: _finalImage == null
+                                    ? Image.network(
+                                        drivingImage,
+                                        height: 200,
+                                        fit: BoxFit.fill,
+                                        colorBlendMode: profileStatus == "0"
+                                            ? BlendMode.hardLight
+                                            : BlendMode.color,
+                                        color: profileStatus == "0"
+                                            ? Colors.white.withOpacity(0.4)
+                                            : Colors.transparent,
+                                      )
+                                    : Image.file(
+                                        _finalImage!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                      ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "UPLOAD_PASS")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 2);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: panImage == null
+                                    ? Image.network(
+                                        panCard,
+                                        height: 200,
+                                        fit: BoxFit.fill,
+                                        colorBlendMode: profileStatus == "0"
+                                            ? BlendMode.hardLight
+                                            : BlendMode.color,
+                                        color: profileStatus == "0"
+                                            ? Colors.white.withOpacity(0.4)
+                                            : Colors.transparent,
+                                      )
+                                    : Image.file(
+                                        panImage!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                      ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "UPLOAD_BLUE")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 3);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: adharImage == null
+                                      ? Image.network(
+                                          adharCard,
+                                          height: 200,
+                                          fit: BoxFit.fill,
+                                          colorBlendMode: profileStatus == "0"
+                                              ? BlendMode.hardLight
+                                              : BlendMode.color,
+                                          color: profileStatus == "0"
+                                              ? Colors.white.withOpacity(0.4)
+                                              : Colors.transparent,
+                                        )
+                                      : Image.file(
+                                          adharImage!,
+                                          height: 100,
+                                          width: 100,
+                                          fit: BoxFit.fill,
+                                        )),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "UPLOAD_INS")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 6);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: insuranceImage == null
+                                      ? Image.network(
+                                          insurance,
+                                          height: 200,
+                                          fit: BoxFit.fill,
+                                          colorBlendMode: profileStatus == "0"
+                                              ? BlendMode.hardLight
+                                              : BlendMode.color,
+                                          color: profileStatus == "0"
+                                              ? Colors.white.withOpacity(0.4)
+                                              : Colors.transparent,
+                                        )
+                                      : Image.file(
+                                          insuranceImage!,
+                                          height: 100,
+                                          width: 100,
+                                          fit: BoxFit.fill,
+                                        )),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "UPLOAD_BANK")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 7);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: bankImage == null
+                                      ? Image.network(
+                                          cheque,
+                                          height: 200,
+                                          fit: BoxFit.fill,
+                                          colorBlendMode: profileStatus == "0"
+                                              ? BlendMode.hardLight
+                                              : BlendMode.color,
+                                          color: profileStatus == "0"
+                                              ? Colors.white.withOpacity(0.4)
+                                              : Colors.transparent,
+                                        )
+                                      : Image.file(
+                                          bankImage!,
+                                          height: 100,
+                                          width: 100,
+                                          fit: BoxFit.fill,
+                                        )),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child:
+                                  Text(getTranslated(context, "Vehicleimage")!),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              if (profileStatus == "0") {
+                                return;
+                              }
+                              requestPermission(context, 4);
+                            },
+                            child: Container(
+                              width: getWidth(300),
+                              padding:
+                                  const EdgeInsets.only(left: 30, right: 20),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: vehicleImage == null
+                                    ? Image.network(
+                                        vehicle,
+                                        height: 200,
+                                        fit: BoxFit.fill,
+                                        colorBlendMode: profileStatus == "0"
+                                            ? BlendMode.hardLight
+                                            : BlendMode.color,
+                                        color: profileStatus == "0"
+                                            ? Colors.white.withOpacity(0.4)
+                                            : Colors.transparent,
+                                      )
+                                    : Image.file(
+                                        vehicleImage!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                      ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          SizedBox(height: 20),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                Container(
-                  color: theme.backgroundColor,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      EntryField(
-                        label: getTranslated(context, "ENTER_PHONE")!,
-                        initialValue: mobile,
-                        readOnly: true,
-                      ),
-                      EntryField(
-                        label: getTranslated(context,Strings.FULL_NAME),
-                        controller: nameCon,
-                        keyboardType: TextInputType.name,
-                      ),
-                      EntryField(
-                        label: getTranslated(context,Strings.EMAIL_ADD),
-                        controller: emailCon,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      gender.length>0?EntryField(
-                        maxLength: 10,
-                        readOnly: true,
-                        controller: genderCon,
-                        onTap: (){
-                          showBottom1();
-                        },
-                        label: getTranslated(context, "GENDER")!,
-                      ):SizedBox(),
-                      EntryField(
-                        label: getTranslated(context, "DOB")!,
-                        controller: dobCon,
-                        readOnly: true,
-                        onTap: (){
-                          selectDate(context);
-                        },
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      SizedBox(height: 28),
-                      // Divider(
-                      //   color: Colors.black,
-                      //   thickness: 5,
-                      // ),
-                      SizedBox(height: 20),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          getTranslated(context,Strings.CAR_INFO)!,
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                      EntryField(
-                        controller: carCon,
-                        //initialValue: brand,
-                        onTap: (){
-                        ///  showBottom();
-                        },
-                        label: getTranslated(context,Strings.CAR_BRAND),
-                        hint: getTranslated(context,Strings.SELECT_CAR_BRAND),
-                        suffixIcon: Icon(Icons.arrow_drop_down),
-                        readOnly: true,
-                      ),
-                      carCon.text.toLowerCase()!="bike"?EntryField(
-                       onTap: (){
-                         showBottom2();
-                       },
-                        controller: modelCon,
-                        readOnly: true,
-                        label: getTranslated(context,Strings.CAR_MODEL),
-                        hint: getTranslated(context,Strings.SELECT_CAR_MODEL),
-                        suffixIcon: Icon(Icons.arrow_drop_down),
-                      ):SizedBox(),
-                      EntryField(
-                    //    initialValue: number,
-                        controller: vehicleCon,
-                        label: getTranslated(context,Strings.VEHICLE_NUM),
-                        hint: getTranslated(context,Strings.ENTER_VEHICLE_NUM),
-                      ),
-                      SizedBox(height: 20),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          getTranslated(context, "BANK_INFO")!,
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                      EntryField(
-                        maxLength: 16,
-                        keyboardType: TextInputType.phone,
-                        controller: accountCon,
-                        label: getTranslated(context, "Accountnumber")!,
-                        hint: "",
-                      ),
-                      EntryField(
-                        keyboardType: TextInputType.text,
-                        controller: bankCon,
-                        label:  getTranslated(context, "BANK_NAME")!,
-                        hint: "",
-                      ),
-                      EntryField(
-                        maxLength: 11,
-                        keyboardType: TextInputType.text,
-                        controller: codeCon,
-                        label: getTranslated(context, "BANK_CODE")!,
-                        hint: "",
-                      ),
-                      SizedBox(height: 20),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          getTranslated(context,Strings.DOCUMENT)!,
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "UPLOAD_Drive")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 5);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child:_finalImage==null?Image.network(drivingImage,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):
-                            Image.file(_finalImage!,  height: 100,
-                              width: 100,fit: BoxFit.fill,),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "UPLOAD_PASS")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 2);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: panImage==null?Image.network(panCard,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(panImage!,  height: 100,
-                            width: 100,fit: BoxFit.fill,),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "UPLOAD_BLUE")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 3);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: adharImage==null?Image.network(adharCard,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(adharImage!,  height: 100,
-                              width: 100,fit: BoxFit.fill,)
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "UPLOAD_INS")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 6);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: insuranceImage==null?Image.network(insurance,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(insuranceImage!,  height: 100,
-                                width: 100,fit: BoxFit.fill,)
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "UPLOAD_BANK")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 7);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: bankImage==null?Image.network(cheque,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(bankImage!,  height: 100,
-                                width: 100,fit: BoxFit.fill,)
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: Text(getTranslated(context, "Vehicleimage")!),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: (){
-                          if(profileStatus=="0"){
-                            return;
-                          }
-                          requestPermission(context, 4);
-                        },
-                        child: Container(
-                          width: getWidth(300),
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 20),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: vehicleImage==null?Image.network(vehicle,height: 200,fit: BoxFit.fill,colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,):Image.file(vehicleImage!,  height: 100,
-                              width: 100,fit: BoxFit.fill,),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        beginOffset: Offset(0, 0.3),
-        endOffset: Offset(0, 0),
-        slideCurve: Curves.linearToEaseOut,
-      ),
-      bottomNavigationBar: !loading?Container(
-        width: getWidth(375),
-
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: getWidth(375),
-              child: CustomButton(
-                icon: Icons.circle,
-                textColor: profileStatus=="0"?Colors.yellow:profileStatus=="1"?Colors.green:Colors.red,
-                text: profileStatus=="0"?getTranslated(context, "WAIT")!:profileStatus=="1"?getTranslated(context, "APPROVED")!:getTranslated(context, "REJECTED")!,
-                onTap: (){
-
-                },
+              ),
+            )
+          : Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
               ),
             ),
-           Container(
-             height:60,
-             child: CustomButton(
-                text: getTranslated(context, "Updateprofile")!,
-                onTap: profileStatus=="0"?(){
-
-                  setSnackbar("Please Wait For Review", context);
-                }:(){
-                  /* if(mobileCon.text==""||mobileCon.text.length!=10){
+      bottomNavigationBar: !loading
+          ? Container(
+              width: getWidth(375),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: getWidth(375),
+                    child: CustomButton(
+                      icon: Icons.circle,
+                      textColor: profileStatus == "0"
+                          ? Colors.yellow
+                          : profileStatus == "1"
+                              ? Colors.green
+                              : Colors.red,
+                      text: profileStatus == "0"
+                          ? getTranslated(context, "WAIT")!
+                          : profileStatus == "1"
+                              ? getTranslated(context, "APPROVED")!
+                              : getTranslated(context, "REJECTED")!,
+                      onTap: () {},
+                    ),
+                  ),
+                  Container(
+                    height: 60,
+                    child: CustomButton(
+                      text: getTranslated(context, "Updateprofile")!,
+                      onTap: profileStatus == "0"
+                          ? () {
+                              setSnackbar("Please Wait For Review", context);
+                            }
+                          : () {
+                              /* if(mobileCon.text==""||mobileCon.text.length!=10){
                     setSnackbar("Please Enter Valid Mobile Number", context);
                     return ;
                   }*/
-                  if(validateField(nameCon.text, "Please Enter Full Name")!=null){
-                  setSnackbar("Please Enter Full Name", context);
-                  return;
-                  }
-                  if(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email")!=null){
-                  setSnackbar(validateEmail(emailCon.text, "Please Enter Email","Please Enter Valid Email").toString(), context);
-                  return;
-                  }
-                  if(vehicleCon.text==""||vehicleCon.text.length!=10){
-                  setSnackbar("Please Enter Valid Vehicle Number", context);
-                  return ;
-                  }
-                  if(accountCon.text==""||accountCon.text.length<10){
-                  setSnackbar("Please Enter Valid Account Number", context);
-                  return ;
-                  }
-                  if(bankCon.text==""){
-                  setSnackbar("Please Enter Valid Bank Name", context);
-                  return ;
-                  }
-                  if(codeCon.text==""||codeCon.text.length!=11){
-                  setSnackbar("Please Enter Valid Code", context);
-                  return ;
-                  }
-                  setState(() {
-                  loading =true;
-                  });
-                  submitSubscription();
-
-                },
+                              if (validateField(
+                                      nameCon.text, "Please Enter Full Name") !=
+                                  null) {
+                                setSnackbar("Please Enter Full Name", context);
+                                return;
+                              }
+                              /*if (validateEmail(
+                                      emailCon.text,
+                                      "Please Enter Email",
+                                      "Please Enter Valid Email") !=
+                                  null) {
+                                setSnackbar(
+                                    validateEmail(
+                                            emailCon.text,
+                                            "Please Enter Email",
+                                            "Please Enter Valid Email")
+                                        .toString(),
+                                    context);
+                                return;
+                              }*/
+                              if (vehicleCon.text == "" ||
+                                  vehicleCon.text.length != 10) {
+                                setSnackbar("Please Enter Valid Vehicle Number",
+                                    context);
+                                return;
+                              }
+                              if (accountCon.text == "" ||
+                                  accountCon.text.length < 10) {
+                                setSnackbar("Please Enter Valid Account Number",
+                                    context);
+                                return;
+                              }
+                              if (bankCon.text == "") {
+                                setSnackbar(
+                                    "Please Enter Valid Bank Name", context);
+                                return;
+                              }
+                              if (codeCon.text == "" ||
+                                  codeCon.text.length != 11) {
+                                setSnackbar("Please Enter Valid Code", context);
+                                return;
+                              }
+                              setState(() {
+                                loading = true;
+                              });
+                              submitSubscription();
+                            },
+                    ),
+                  ),
+                ],
               ),
-           ),
-          ],
-        ),
-      ):Container(
-          width: 50,
-          height: 50,
-          child: Center(child: CircularProgressIndicator())),
+            )
+          : Container(
+              width: 50,
+              height: 50,
+              child: Center(child: CircularProgressIndicator())),
     );
   }
+
   Future<void> submitSubscription() async {
     await App.init();
 
@@ -618,7 +784,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           "token": App.localStorage.getString("token").toString(),
           "Content-type": "multipart/form-data"
         };
-        if(_image!=null)
+        if (_image != null)
           request.files.add(
             http.MultipartFile(
               'user_image',
@@ -628,7 +794,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
               contentType: MediaType('image', 'jpeg'),
             ),
           );
-        if(vehicleImage!=null)
+        if (vehicleImage != null)
           request.files.add(
             http.MultipartFile(
               'vehical_imege',
@@ -638,7 +804,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
               contentType: MediaType('image', 'jpeg'),
             ),
           );
-        if(adharImage!=null)
+        if (adharImage != null)
           request.files.add(
             http.MultipartFile(
               'aadhar_card',
@@ -648,7 +814,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
               contentType: MediaType('image', 'jpeg'),
             ),
           );
-        if(panImage!=null)
+        if (panImage != null)
           request.files.add(
             http.MultipartFile(
               'pan_card',
@@ -658,7 +824,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
               contentType: MediaType('image', 'jpeg'),
             ),
           );
-        if(_finalImage!=null)
+        if (_finalImage != null)
           request.files.add(
             http.MultipartFile(
               'driving_licence_photo',
@@ -668,31 +834,31 @@ class _MyProfilePageState extends State<MyProfilePage> {
               contentType: MediaType('image', 'jpeg'),
             ),
           );
-        if(bankImage!=null)
-        request.files.add(
-          http.MultipartFile(
-            'bank_chaque',
-            bankImage!.readAsBytes().asStream(),
-            bankImage!.lengthSync(),
-            filename: path.basename(bankImage!.path),
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
-        if(insuranceImage!=null)
-        request.files.add(
-          http.MultipartFile(
-            'insurance',
-            insuranceImage!.readAsBytes().asStream(),
-            insuranceImage!.lengthSync(),
-            filename: path.basename(insuranceImage!.path),
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
+        if (bankImage != null)
+          request.files.add(
+            http.MultipartFile(
+              'bank_chaque',
+              bankImage!.readAsBytes().asStream(),
+              bankImage!.lengthSync(),
+              filename: path.basename(bankImage!.path),
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          );
+        if (insuranceImage != null)
+          request.files.add(
+            http.MultipartFile(
+              'insurance',
+              insuranceImage!.readAsBytes().asStream(),
+              insuranceImage!.lengthSync(),
+              filename: path.basename(insuranceImage!.path),
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          );
         request.headers.addAll(headers);
         request.fields.addAll({
-          "user_id":curUserId.toString(),
+          "user_id": curUserId.toString(),
           "gender": genderCon.text,
-          "dob":dobCon.text,
+          "dob": dobCon.text,
           "account_number": accountCon.text,
           "ifsc_code": codeCon.text,
           "bank_name": bankCon.text,
@@ -701,10 +867,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
           "car_no": vehicleCon.text,
           "car_type": cabId,
           "car_model": modelId,
-          "user_email": emailCon.text.trim().toString(),
+          "user_email":
+              emailCon.text != "" ? emailCon.text.trim().toString() : "",
           // "firebaseToken": "no data",
         });
-       /* if(referCon.text!=""){
+        /* if(referCon.text!=""){
           request.fields.addAll({
             "friends_code": referCon.text,
           });
@@ -724,15 +891,19 @@ class _MyProfilePageState extends State<MyProfilePage> {
           if (data['status']) {
             Map info = data['data'];
             setSnackbar(data['message'].toString(), context);
-            if(isActive == "1" && reject == "1") {
+            if (isActive == "1" && reject == "1") {
               await App.init();
               App.localStorage.clear();
               //Common().toast("Logout");
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> LoginPage()), (route) => false);
-            }else{
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) => OfflinePage("")), (
-                      route) => false);
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (route) => false);
+            } else {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => OfflinePage("")),
+                  (route) => false);
             }
           } else {
             setSnackbar(data['message'].toString(), context);
@@ -751,28 +922,34 @@ class _MyProfilePageState extends State<MyProfilePage> {
       });
     }
   }
+
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   PersistentBottomSheetController? persistentBottomSheetController;
 
-  showBottom()async{
-    persistentBottomSheetController = await scaffoldKey.currentState!.showBottomSheet((context) {
+  showBottom() async {
+    persistentBottomSheetController =
+        await scaffoldKey.currentState!.showBottomSheet((context) {
       return Container(
-        decoration: boxDecoration(radius: 0,showShadow: true,color: Colors.white),
+        decoration:
+            boxDecoration(radius: 0, showShadow: true, color: Colors.white),
         padding: EdgeInsets.all(getWidth(20)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             boxHeight(20),
-            text(getTranslated(context, "VEHICLE_TYPE")!,textColor: MyColorName.colorTextPrimary,fontSize: 12.sp,fontFamily: fontBold),
+            text(getTranslated(context, "VEHICLE_TYPE")!,
+                textColor: MyColorName.colorTextPrimary,
+                fontSize: 12.sp,
+                fontFamily: fontBold),
             boxHeight(20),
             Container(
               child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: cabList.length,
-                  itemBuilder:(context, index) {
-                    return  InkWell(
-                      onTap: (){
-                        persistentBottomSheetController!.setState!((){
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () {
+                        persistentBottomSheetController!.setState!(() {
                           cabId = cabList[index].id;
                           carCon.text = cabList[index].car_type;
                           cabName = cabList[index].car_type;
@@ -781,9 +958,14 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         getModel();
                       },
                       child: Container(
-                        color: cabId==cabList[index].id?MyColorName.primaryLite.withOpacity(0.2) :Colors.white,
+                        color: cabId == cabList[index].id
+                            ? MyColorName.primaryLite.withOpacity(0.2)
+                            : Colors.white,
                         padding: EdgeInsets.all(getWidth(10)),
-                        child: text(cabList[index].car_type.toString(),textColor: MyColorName.colorTextPrimary,fontSize: 10.sp,fontFamily: fontMedium),
+                        child: text(cabList[index].car_type.toString(),
+                            textColor: MyColorName.colorTextPrimary,
+                            fontSize: 10.sp,
+                            fontFamily: fontMedium),
                       ),
                     );
                   }),
@@ -791,31 +973,36 @@ class _MyProfilePageState extends State<MyProfilePage> {
             boxHeight(40),
           ],
         ),
-
       );
     });
   }
+
   PersistentBottomSheetController? persistentBottomSheetController2;
-  showBottom2()async{
-    persistentBottomSheetController2 = await scaffoldKey.currentState!.showBottomSheet((context) {
+  showBottom2() async {
+    persistentBottomSheetController2 =
+        await scaffoldKey.currentState!.showBottomSheet((context) {
       return SingleChildScrollView(
         child: Container(
-          decoration: boxDecoration(radius: 0,showShadow: true,color: Colors.white),
+          decoration:
+              boxDecoration(radius: 0, showShadow: true, color: Colors.white),
           padding: EdgeInsets.all(getWidth(20)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               boxHeight(20),
-              text("Select Vehicle Model",textColor: MyColorName.colorTextPrimary,fontSize: 12.sp,fontFamily: fontBold),
+              text("Select Vehicle Model",
+                  textColor: MyColorName.colorTextPrimary,
+                  fontSize: 12.sp,
+                  fontFamily: fontBold),
               boxHeight(20),
               Container(
                 child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: modelList.length,
-                    itemBuilder:(context, index) {
-                      return  InkWell(
-                        onTap: (){
-                          persistentBottomSheetController2!.setState!((){
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () {
+                          persistentBottomSheetController2!.setState!(() {
                             modelId = modelList[index].id;
                             modelCon.text = modelList[index].car_model;
                             modelName = modelList[index].car_model;
@@ -823,9 +1010,14 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           Navigator.pop(context);
                         },
                         child: Container(
-                          color: modelId==modelList[index].id?MyColorName.primaryLite.withOpacity(0.2):Colors.white,
+                          color: modelId == modelList[index].id
+                              ? MyColorName.primaryLite.withOpacity(0.2)
+                              : Colors.white,
                           padding: EdgeInsets.all(getWidth(10)),
-                          child: text(modelList[index].car_model.toString(),textColor: MyColorName.colorTextPrimary,fontSize: 10.sp,fontFamily: fontMedium),
+                          child: text(modelList[index].car_model.toString(),
+                              textColor: MyColorName.colorTextPrimary,
+                              fontSize: 10.sp,
+                              fontFamily: fontMedium),
                         ),
                       );
                     }),
@@ -833,48 +1025,53 @@ class _MyProfilePageState extends State<MyProfilePage> {
               boxHeight(40),
             ],
           ),
-
         ),
       );
     });
   }
-  void requestPermission(BuildContext context,int i) async{
-    if (await Permission.camera.isPermanentlyDenied||await Permission.storage.isPermanentlyDenied) {
 
+  void requestPermission(BuildContext context, int i) async {
+    if (await Permission.camera.isPermanentlyDenied ||
+        await Permission.storage.isPermanentlyDenied) {
       // The user opted to never again see the permission request dialog for this
       // app. The only way to change the permission's status now is to let the
       // user manually enable it in the system settings.
       openAppSettings();
-    }
-    else{
+    } else {
       Map<Permission, PermissionStatus> statuses = await [
         Permission.camera,
         Permission.storage,
       ].request();
 // You can request multiple permissions at once.
 
-      if(statuses[Permission.camera]==PermissionStatus.granted&&statuses[Permission.storage]==PermissionStatus.granted){
-        getImage(ImgSource.Both, context,i);
-
-      }else{
-        if (await Permission.camera.isDenied||await Permission.storage.isDenied) {
-
+      if (statuses[Permission.camera] == PermissionStatus.granted &&
+          statuses[Permission.storage] == PermissionStatus.granted) {
+        getImage(ImgSource.Both, context, i);
+      } else {
+        if (await Permission.camera.isDenied ||
+            await Permission.storage.isDenied) {
           // The user opted to never again see the permission request dialog for this
           // app. The only way to change the permission's status now is to let the
           // user manually enable it in the system settings.
           openAppSettings();
-        }else{
+        } else {
           setSnackbar("Oops you just denied the permission", context);
         }
       }
     }
-
   }
-  File? _image,_finalImage,panImage,vehicleImage,adharImage,insuranceImage,bankImage;
-  Future getImage(ImgSource source, BuildContext context,int i) async {
+
+  File? _image,
+      _finalImage,
+      panImage,
+      vehicleImage,
+      adharImage,
+      insuranceImage,
+      bankImage;
+  Future getImage(ImgSource source, BuildContext context, int i) async {
     var image = await ImagePickerGC.pickImage(
       context: context,
-      source: source,
+      source: source, imageQuality: 30,
       cameraIcon: Icon(
         Icons.add,
         color: Colors.red,
@@ -882,7 +1079,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
     );
     getCropImage(context, i, image);
   }
-  void getCropImage(BuildContext context,int i,var image) async {
+
+  void getCropImage(BuildContext context, int i, var image) async {
     File? croppedFile = await ImageCropper().cropImage(
         sourcePath: image.path,
         aspectRatioPresets: [
@@ -892,6 +1090,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           CropAspectRatioPreset.ratio4x3,
           CropAspectRatioPreset.ratio16x9
         ],
+        compressQuality: 60,
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: 'Cropper',
             toolbarColor: Colors.lightBlueAccent,
@@ -902,30 +1101,28 @@ class _MyProfilePageState extends State<MyProfilePage> {
           minimumAspectRatio: 1.0,
         ));
     setState(() {
-      if(i==1){
+      if (i == 1) {
         _image = File(croppedFile!.path);
-      }else  if(i==2){
+      } else if (i == 2) {
         panImage = File(croppedFile!.path);
-      }else  if(i==4){
+      } else if (i == 4) {
         vehicleImage = File(croppedFile!.path);
-      }else if(i==3){
+      } else if (i == 3) {
         adharImage = File(croppedFile!.path);
-      }
-      else if(i==6){
+      } else if (i == 6) {
         insuranceImage = File(croppedFile!.path);
-      }
-      else if(i==7){
+      } else if (i == 7) {
         bankImage = File(croppedFile!.path);
-      }
-      else{
+      } else {
         _finalImage = File(croppedFile!.path);
       }
     });
   }
-  List<CabModel>  cabList = [];
-  String cabId = "",cabName = "";
-  List<modelModel>  modelList = [];
-  String modelId = "",modelName = "";
+
+  List<CabModel> cabList = [];
+  String cabId = "", cabName = "";
+  List<modelModel> modelList = [];
+  String modelId = "", modelName = "";
   TextEditingController mobileCon = new TextEditingController();
   TextEditingController referCon = new TextEditingController();
   TextEditingController emailCon = new TextEditingController();
@@ -949,15 +1146,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
           loading = false;
         });
         // setSnackbar(msg, context);
-        if(response['status']){
-          for(var v in response['data']){
+        if (response['status']) {
+          for (var v in response['data']) {
             setState(() {
-              cabList.add(new CabModel(v['id'],v['car_type'],v['car_image'], v['status']));
+              cabList.add(new CabModel(
+                  v['id'], v['car_type'], v['car_image'], v['status']));
             });
           }
-          if(cabList.length>0){
+          if (cabList.length > 0) {
             setState(() {
-             /* if(cabId==""){
+              /* if(cabId==""){
                 cabId = cabList[0].id;
                 cabName = cabList[0].car_type;
                 carCon.text = cabList[0].car_type;
@@ -970,24 +1168,21 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 }
 
               }*/
-              if(carCon.text==""){
+              if (carCon.text == "") {
                 cabId = cabList[0].id;
                 cabName = cabList[0].car_type;
                 carCon.text = cabList[0].car_type;
-              }else{
-                int i =cabList.indexWhere((element) => element.car_type==carCon.text);
+              } else {
+                int i = cabList
+                    .indexWhere((element) => element.car_type == carCon.text);
                 cabId = cabList[i].id;
                 cabName = cabList[i].car_type;
                 carCon.text = cabList[i].car_type;
               }
-
             });
           }
           getModel();
-
-        }else{
-
-        }
+        } else {}
       } on TimeoutException catch (_) {
         setSnackbar("Something Went Wrong", context);
         setState(() {
@@ -1001,6 +1196,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
       });
     }
   }
+
   getModel() async {
     await App.init();
     isNetwork = await isNetworkAvailable();
@@ -1012,7 +1208,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           "cab_id": cabId,
         };
         Map response =
-        await apiBase.postAPICall(Uri.parse(baseUrl + "get_model"), data);
+            await apiBase.postAPICall(Uri.parse(baseUrl + "get_model"), data);
         print(response);
         print(response);
         bool status = true;
@@ -1022,26 +1218,24 @@ class _MyProfilePageState extends State<MyProfilePage> {
           loading = false;
         });
         //setSnackbar(msg, context);
-        if(response['status']){
-          for(var v in response['data']){
+        if (response['status']) {
+          for (var v in response['data']) {
             setState(() {
-              modelList.add(new modelModel(v['id'].toString(), v['car_type_id'].toString(), v['car_model'].toString()));
+              modelList.add(new modelModel(v['id'].toString(),
+                  v['car_type_id'].toString(), v['car_model'].toString()));
             });
           }
-          if(modelList.length>0){
-            if(modelId!=""){
-              int i = modelList.indexWhere((element) => element.id==modelId);
-              if(i!=-1){
+          if (modelList.length > 0) {
+            if (modelId != "") {
+              int i = modelList.indexWhere((element) => element.id == modelId);
+              if (i != -1) {
                 setState(() {
                   modelId = modelList[i].id;
                   modelName = modelList[i].car_model;
                   modelCon.text = modelList[i].car_model;
                 });
-              }else{
-
-              }
-
-            }else{
+              } else {}
+            } else {
               setState(() {
                 modelId = modelList[0].id;
                 modelName = modelList[0].car_model;
@@ -1049,10 +1243,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
               });
             }
           }
-
-        }else{
-
-        }
+        } else {}
       } on TimeoutException catch (_) {
         setSnackbar("Something Went Wrong", context);
         setState(() {

@@ -11,20 +11,24 @@ const double CAMERA_ZOOM = 15;
 const double CAMERA_TILT = 0;
 const double CAMERA_BEARING = 30;
 
-
 class MapPage extends StatefulWidget {
   bool status;
   LatLng? SOURCE_LOCATION;
   LatLng? DEST_LOCATION;
   bool live;
-  String pick,dest;
-  MapPage(this.status,{ this.SOURCE_LOCATION, this.DEST_LOCATION,required this.live,this.pick="",this.dest=""});
+  String pick, dest;
+  MapPage(this.status,
+      {this.SOURCE_LOCATION,
+      this.DEST_LOCATION,
+      required this.live,
+      this.pick = "",
+      this.dest = ""});
 
   @override
   State<StatefulWidget> createState() => MapPageState();
 }
 
-class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
+class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   Completer<GoogleMapController> _controller = Completer();
@@ -48,21 +52,21 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
   @override
   void initState() {
     super.initState();
-    if(widget.live){
+    if (widget.live) {
       getLocation();
       print("yehuyi");
-    }else{
+    } else {
       setSourceAndDestinationIcons();
     }
- //   setSourceAndDestinationIcons();
+    //   setSourceAndDestinationIcons();
 
     /*if(widget.status){
       setPolylines();
       setMapPins();
     }*/
-
   }
-  getLocation() async{
+
+  getLocation() async {
     GetLocation location = new GetLocation((result) {
       if (mounted) {
         setState(() {
@@ -72,13 +76,12 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
         //    updateLocation();
       }
       updatePinOnMap();
-
     });
     location.getLoc();
     driveLat = latitude;
     driveLng = longitude;
     SOURCE_LOCATION = widget.SOURCE_LOCATION;
-    if(widget.live){
+    if (widget.live) {
       lates.add(LatLng(driveLat, driveLng));
       lates.add(LatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude));
       PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
@@ -86,8 +89,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
           PointLatLng(driveLat, driveLng),
           PointLatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude),
           travelMode: TravelMode.driving,
-          optimizeWaypoints: true
-      );
+          optimizeWaypoints: true);
       print("${result.points} >>>>>>>>>>>>>>>>..");
       print("$SOURCE_LOCATION >>>>>>>>>>>>>>>>..");
       print("$DEST_LOCATION >>>>>>>>>>>>>>>>..");
@@ -98,7 +100,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
         result.points.forEach((PointLatLng point) {
           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         });
-      }else{
+      } else {
         print("Failed");
       }
       setState(() {
@@ -123,6 +125,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
     setSourceAndDestinationIcons();
     updatePinOnMap();
   }
+
   void setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving_pin.png');
@@ -132,7 +135,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
         ImageConfiguration(devicePixelRatio: 2.5),
         'assets/destination_map_marker.png');
 
-    if(widget.status){
+    if (widget.status) {
       setState(() {
         SOURCE_LOCATION = widget.SOURCE_LOCATION;
         DEST_LOCATION = widget.DEST_LOCATION;
@@ -159,8 +162,9 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
         initialCameraPosition: initialLocation,
         onMapCreated: onMapCreated);
   }
+
   BitmapDescriptor? driverIcon;
-  double driveLat=0,driveLng=0;
+  double driveLat = 0, driveLng = 0;
   void updatePinOnMap() async {
     // create a new CameraPosition instance
     // every time the location changes, so the camera
@@ -169,40 +173,37 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
       zoom: CAMERA_ZOOM,
       tilt: CAMERA_TILT,
       bearing: CAMERA_BEARING,
-      target: LatLng(driveLat,
-          driveLng),
+      target: LatLng(driveLat, driveLng),
     );
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
-    if(widget.live&&driverIcon==null){
+    if (widget.live && driverIcon == null) {
       driverIcon = await BitmapDescriptor.fromAssetImage(
           ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving.png');
     }
     // do this inside the setState() so Flutter gets notified
     // that a widget update is due
-    if(mounted)
-    setState(() {
-      // updated position
-      var pinPosition = LatLng(driveLat,
-          driveLng);
+    if (mounted)
+      setState(() {
+        // updated position
+        var pinPosition = LatLng(driveLat, driveLng);
 
-      // the trick is to remove the marker (by id)
-      // and add it again at the updated location
-      _markers.removeWhere(
-              (m) => m.markerId.value == 'drivePin');
+        // the trick is to remove the marker (by id)
+        // and add it again at the updated location
+        _markers.removeWhere((m) => m.markerId.value == 'drivePin');
 
-      _markers.add(Marker(
-          markerId: MarkerId('drivePin'),
-          position: pinPosition, // updated position
-          icon: driverIcon!
-      ));
-    });
+        _markers.add(Marker(
+            markerId: MarkerId('drivePin'),
+            position: pinPosition, // updated position
+            icon: driverIcon!));
+      });
   }
+
   void onMapCreated(GoogleMapController controller) {
-    controller.setMapStyle(Utils.mapStyles);
+    // controller.setMapStyle(Utils.mapStyles);
     _controller.complete(controller);
     var nLat, nLon, sLat, sLon;
-    if(widget.status) {
+    if (widget.status) {
       SOURCE_LOCATION = widget.SOURCE_LOCATION;
       DEST_LOCATION = widget.DEST_LOCATION;
       if (DEST_LOCATION!.latitude <= SOURCE_LOCATION!.latitude) {
@@ -219,30 +220,30 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
         sLon = SOURCE_LOCATION!.longitude;
         nLon = DEST_LOCATION!.longitude;
       }
-      LatLngBounds bound =
-      LatLngBounds(southwest: LatLng(sLat, sLon), northeast: LatLng(nLat, nLon));
+      LatLngBounds bound = LatLngBounds(
+          southwest: LatLng(sLat, sLon), northeast: LatLng(nLat, nLon));
       CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 150);
       controller.animateCamera(u2).then((void v) {});
     }
-    if(widget.status){
+    if (widget.status) {
       //setMapPins();
       //setPolylines();
     }
   }
+
   List<LatLng> lates = [];
   void setMapPins() {
-
     setState(() {
       // source pin
-      if(sourceIcon!=null)
-      _markers.add(Marker(
-          markerId: MarkerId('sourcePin'),
-          position: SOURCE_LOCATION!,
-          infoWindow: InfoWindow(
-            title: "Pickup Location",
-            snippet: widget.pick,
-          ),
-          icon: sourceIcon!));
+      if (sourceIcon != null)
+        _markers.add(Marker(
+            markerId: MarkerId('sourcePin'),
+            position: SOURCE_LOCATION!,
+            infoWindow: InfoWindow(
+              title: "Pickup Location",
+              snippet: widget.pick,
+            ),
+            icon: sourceIcon!));
       /*if(widget.live){
         if(driverIcon!=null)
         _markers.add(Marker(
@@ -254,46 +255,45 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
             icon: driverIcon!));
       }*/
       // destination pin
-      if(destinationIcon!=null)
-      _markers.add(Marker(
-          markerId: MarkerId('destPin'),
-          position: DEST_LOCATION!,
-          infoWindow: InfoWindow(
-            title: "Destination Location",
-            snippet: widget.dest,
-          ),
-          icon: destinationIcon!));
+      if (destinationIcon != null)
+        _markers.add(Marker(
+            markerId: MarkerId('destPin'),
+            position: DEST_LOCATION!,
+            infoWindow: InfoWindow(
+              title: "Destination Location",
+              snippet: widget.dest,
+            ),
+            icon: destinationIcon!));
     });
   }
 
   setPolylines() async {
-      lates.add(LatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude));
-      lates.add(LatLng(DEST_LOCATION!.latitude, DEST_LOCATION!.longitude));
+    lates.add(LatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude));
+    lates.add(LatLng(DEST_LOCATION!.latitude, DEST_LOCATION!.longitude));
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      googleAPIKey,
-      PointLatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude),
-      PointLatLng(DEST_LOCATION!.latitude, DEST_LOCATION!.longitude),
-      travelMode: TravelMode.driving,
-      optimizeWaypoints: true
-    );
+        googleAPIKey,
+        PointLatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude),
+        PointLatLng(DEST_LOCATION!.latitude, DEST_LOCATION!.longitude),
+        travelMode: TravelMode.driving,
+        optimizeWaypoints: true);
     print("${result.points} >>>>>>>>>>>>>>>>..");
     print("$SOURCE_LOCATION >>>>>>>>>>>>>>>>..");
     print("$DEST_LOCATION >>>>>>>>>>>>>>>>..");
-  // polylineCoordinates.clear();
+    // polylineCoordinates.clear();
     if (result.points.isNotEmpty) {
       // loop through all PointLatLng points and convert them
       // to a list of LatLng, required by the Polyline
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
-    }else{
+    } else {
       print("Failed");
     }
     setState(() {
       // create a Polyline instance
       // with an id, an RGB color and the list of LatLng pairs
       Polyline polyline = Polyline(
-        width: 5,
+          width: 5,
           polylineId: PolylineId("poly2"),
           color: AppTheme.primaryColor,
           points: polylineCoordinates);
@@ -302,7 +302,6 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
       // end up showing up on the map
       _polylines.add(polyline);
     });
-
   }
 }
 

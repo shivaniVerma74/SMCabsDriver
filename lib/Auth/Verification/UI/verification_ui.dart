@@ -71,9 +71,9 @@ class _VerificationUIState extends State<VerificationUI> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        getTranslated(context,Strings.ENTER)! +
+                        getTranslated(context, Strings.ENTER)! +
                             '\n' +
-                            getTranslated(context,Strings.VER_CODE)!,
+                            getTranslated(context, Strings.VER_CODE)!,
                         style: theme.textTheme.headline4,
                       ),
                     ),
@@ -81,7 +81,7 @@ class _VerificationUIState extends State<VerificationUI> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: Text(
-                        getTranslated(context,Strings.ENTER_CODE_WE)!,
+                        getTranslated(context, Strings.ENTER_CODE_WE)!,
                         style: theme.textTheme.bodyText2!
                             .copyWith(color: theme.hintColor),
                       ),
@@ -102,7 +102,8 @@ class _VerificationUIState extends State<VerificationUI> {
                               maxLength: 4,
                               controller: _otpController,
                               label:
-                                  getTranslated(context,Strings.ENTER_6_DIGIT).toString() +
+                                  getTranslated(context, Strings.ENTER_6_DIGIT)
+                                          .toString() +
                                       " ${widget.otp}",
                             ),
                             Spacer(flex: 5),
@@ -119,7 +120,7 @@ class _VerificationUIState extends State<VerificationUI> {
                     children: [
                       Expanded(
                         child: CustomButton(
-                          text: getTranslated(context,Strings.NOT_RECEIVED),
+                          text: getTranslated(context, Strings.NOT_RECEIVED),
                           onTap: () =>
                               widget.verificationInteractor.notReceived(),
                           color: theme.scaffoldBackgroundColor,
@@ -182,8 +183,16 @@ class _VerificationUIState extends State<VerificationUI> {
         });
         setSnackbar(msg, context);
         if (response['status']) {
-
-          if (response['data']['is_active'].toString() == "0") {
+          if (response['data']['is_active'].toString() == "1" &&
+              response['data']['reject'].toString() == "1") {
+            App.localStorage
+                .setString("userProfileId", response['data']['id'].toString());
+            curUserId = response['data']['id'].toString();
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => MyProfilePage()),
+                (route) => false);
+          } else if (response['data']['is_active'].toString() == "0") {
             showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -191,20 +200,22 @@ class _VerificationUIState extends State<VerificationUI> {
                   return AlertDialog(
                     title: Text("Alert"),
                     content: Text("Wait For Admin Approval"),
-
                     actions: <Widget>[
                       ElevatedButton(
                           child: Text('OK'),
-                          style:ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(MyColorName.primaryLite),),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                MyColorName.primaryLite),
+                          ),
                           /* shape: RoundedRectangleBorder(
                                     side: BorderSide(color: Colors.transparent)),
                                 textColor: Theme.of(context).colorScheme.primary,*/
                           onPressed: () async {
                             Navigator.pushAndRemoveUntil(
                                 context,
-                                MaterialPageRoute(builder: (context) => LoginPage()),
-                                    (route) => false);
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                                (route) => false);
                           }),
                     ],
                   );

@@ -441,7 +441,6 @@ class _OfflinePageState extends State<OfflinePage> {
       if (mounted) {
         setState(() {
           address = result.first.addressLine;
-
           latitude = result.first.coordinates.latitude;
           longitude = result.first.coordinates.longitude;
         });
@@ -947,7 +946,7 @@ class _OfflinePageState extends State<OfflinePage> {
                                                     .toString()
                                                     .contains("Rental Booking")
                                                 ? model!.hours.toString() +
-                                                    " hrs"
+                                                    " mins"
                                                 : model!.km.toString() + " km",
                                             fontSize: 10.sp,
                                             fontFamily: fontMedium,

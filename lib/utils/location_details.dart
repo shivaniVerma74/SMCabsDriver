@@ -9,14 +9,14 @@ import 'package:qcabs_driver/utils/Session.dart';
 import 'package:qcabs_driver/utils/common.dart';
 import 'package:qcabs_driver/utils/constant.dart';
 
-class GetLocation{
+class GetLocation {
   LocationData? _currentPosition;
   late String _address = "";
   Location location1 = Location();
-  String firstLocation = "",lat = "",lng = "";
+  String firstLocation = "", lat = "", lng = "";
   ValueChanged onResult;
-
-  GetLocation(this.onResult);
+  bool status;
+  GetLocation(this.onResult, {this.status = false});
   Future<void> getLoc() async {
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
@@ -41,10 +41,10 @@ class GetLocation{
 
     location1.onLocationChanged.listen((LocationData currentLocation) {
       print("${currentLocation.latitude} : ${currentLocation.longitude}");
-      _currentPosition = currentLocation;print(currentLocation.latitude);
+      _currentPosition = currentLocation;
+      print(currentLocation.latitude);
 
-      _getAddress(_currentPosition!.latitude,
-          _currentPosition!.longitude)
+      _getAddress(_currentPosition!.latitude, _currentPosition!.longitude)
           .then((value) {
         _address = "${value.first.addressLine}";
         firstLocation = value.first.subLocality.toString();
@@ -53,18 +53,23 @@ class GetLocation{
         lng = _currentPosition!.longitude.toString();
 
         updateLocation();
-        if(latitude!=value.first.coordinates.latitude){
-
+        if (latitude != value.first.coordinates.latitude) {
+          latitude = value.first.coordinates.latitude;
           print("ok");
           onResult(value);
+        } else {
+          if (status) {
+            onResult(value);
+          }
         }
-        if(latitude == 0){
+        if (latitude == 0) {
           latitude = _currentPosition!.latitude!;
           longitude = _currentPosition!.longitude!;
         }
       });
     });
   }
+
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
   updateLocation() async {
@@ -78,19 +83,16 @@ class GetLocation{
           "lat": lat.toString(),
           "lang": lng.toString()
         };
-        var response = await post(
-            Uri.parse(baseUrl + "update_lat_lang_driver"), body: data);
-      } on TimeoutException catch (_) {
-      }
-    } else {
-    }
+        var response = await post(Uri.parse(baseUrl + "update_lat_lang_driver"),
+            body: data);
+      } on TimeoutException catch (_) {}
+    } else {}
   }
+
   Future<List<Address>> _getAddress(double? lat, double? lang) async {
     final coordinates = new Coordinates(lat, lang);
     List<Address> add =
-    await Geocoder.local.findAddressesFromCoordinates(coordinates);
+        await Geocoder.local.findAddressesFromCoordinates(coordinates);
     return add;
   }
-
-
 }

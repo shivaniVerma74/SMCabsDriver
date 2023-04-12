@@ -44,25 +44,25 @@ class _LoginUIState extends State<LoginUI> {
 
   _signIn() async {
     // print("click");
-    var user = Provider.of<UserProvider>(context , listen: false);
-    if (_numberController.text.toString().isNotEmpty && _numberController.text.toString().length > 9 && _numberController.text.toString().length <11) {
-
+    var user = Provider.of<UserProvider>(context, listen: false);
+    if (_numberController.text.toString().isNotEmpty &&
+        _numberController.text.toString().length > 9 &&
+        _numberController.text.toString().length < 11) {
       GetSignInModel? model =
           await getSingIn(_numberController.text.toString());
       if (model!.status == true) {
-
         user.userId = model.data.toString();
         user.otp = model.otp.toString();
         user.mobileno = model.phone.toString();
         user.message = model.message.toString();
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => VerificationPage(
-                _numberController.text.trim().toString(),model.otp.toString()
-            )));
+            MaterialPageRoute(
+                builder: (context) => VerificationPage(
+                    _numberController.text.trim().toString(),
+                    model.otp.toString())));
 
         // widget.loginInteractor.loginWithMobile(isoCode, _numberController.text);
-
       } else {
         // Toast.show("${model.message}", duration: Toast.lengthShort, gravity:  Toast.bottom);
         // ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -77,7 +77,8 @@ class _LoginUIState extends State<LoginUI> {
         //     fontSize: 16.0
         // );
       }
-    } else if(_numberController.text.toString().length > 9 && _numberController.text.toString().length <11){
+    } else if (_numberController.text.toString().length > 9 &&
+        _numberController.text.toString().length < 11) {
       Fluttertoast.showToast(
           msg: "Please Enter Valid Mobile Number",
           toastLength: Toast.LENGTH_SHORT,
@@ -86,7 +87,7 @@ class _LoginUIState extends State<LoginUI> {
           backgroundColor: Colors.red,
           textColor: Colors.white,
           fontSize: 16.0);
-    }else {
+    } else {
       Fluttertoast.showToast(
           msg: "Please Enter Valid Mobile Number",
           toastLength: Toast.LENGTH_SHORT,
@@ -94,8 +95,7 @@ class _LoginUIState extends State<LoginUI> {
           timeInSecForIosWeb: 1,
           backgroundColor: Colors.red,
           textColor: Colors.white,
-          fontSize: 16.0
-      );
+          fontSize: 16.0);
       // Toast.show("Toast plugin app", duration: Toast.lengthShort, gravity:  Toast.bottom);
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
@@ -123,16 +123,16 @@ class _LoginUIState extends State<LoginUI> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    getTranslated(context,Strings.ENTER_YOUR)! +
+                    getTranslated(context, Strings.ENTER_YOUR)! +
                         '\n' +
-                        getTranslated(context,Strings.PHONE_NUMBER)!,
+                        getTranslated(context, Strings.PHONE_NUMBER)!,
                     style: theme.textTheme.headline4,
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Text(
-                    getTranslated(context,Strings.WILL_SEND_CODE)!,
+                    getTranslated(context, Strings.WILL_SEND_CODE)!,
                     style: theme.textTheme.bodyText2!
                         .copyWith(color: theme.hintColor),
                   ),
@@ -149,23 +149,29 @@ class _LoginUIState extends State<LoginUI> {
                         maxLength: 10,
                         keyboardType: TextInputType.phone,
                         controller: _numberController,
-                        label: getTranslated(context,Strings.ENTER_PHONE),
+                        label: getTranslated(context, Strings.ENTER_PHONE),
                       ),
                       Spacer(flex: 5),
-                      !loading?CustomButton(
-                        onTap: (){
-                          if(_numberController.text==""||_numberController.text.length!=10){
-                            setSnackbar("Please Enter Valid Mobile Number", context);
-                            return ;
-                          }
-                          setState(() {
-                            loading =true;
-                          });
-                          loginUser();
-                        },
-                      ):Container(
-                          width: 50,
-                          child: Center(child: CircularProgressIndicator())),
+                      !loading
+                          ? CustomButton(
+                              onTap: () {
+                                if (_numberController.text == "" ||
+                                    _numberController.text.length != 10) {
+                                  setSnackbar(
+                                      "Please Enter Valid Mobile Number",
+                                      context);
+                                  return;
+                                }
+                                setState(() {
+                                  loading = true;
+                                });
+                                loginUser();
+                              },
+                            )
+                          : Container(
+                              width: 50,
+                              child:
+                                  Center(child: CircularProgressIndicator())),
                     ],
                   ),
                 ),
@@ -179,6 +185,7 @@ class _LoginUIState extends State<LoginUI> {
       ),
     );
   }
+
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
   bool loading = false;
@@ -192,8 +199,8 @@ class _LoginUIState extends State<LoginUI> {
           "user_phone": _numberController.text.trim().toString(),
           "fcm_id": fcmToken.toString(),
         };
-        Map response =
-        await apiBase.postAPICall(Uri.parse(baseUrl + "send_otp_driver"), data);
+        Map response = await apiBase.postAPICall(
+            Uri.parse(baseUrl + "send_otp_driver"), data);
         print(response);
         bool status = true;
         String msg = response['message'];
@@ -201,12 +208,15 @@ class _LoginUIState extends State<LoginUI> {
           loading = false;
         });
         setSnackbar(msg, context);
-        if(response['status']){
+        if (response['status']) {
           //navigateScreen(context, RegisterPage(_numberController.text.trim()));
-          navigateScreen(context, VerificationPage(_numberController.text.trim().toString(),response['otp'].toString()));
+          navigateScreen(
+              context,
+              VerificationPage(_numberController.text.trim().toString(),
+                  response['otp'].toString()));
           // navigateScreen(context, VerificationPage(_numberController.text.trim()));
-        }else{
-          if(msg.contains("Approve")){
+        } else {
+          if (msg.contains("Approve")) {
             showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -214,25 +224,27 @@ class _LoginUIState extends State<LoginUI> {
                   return AlertDialog(
                     title: Text("Alert"),
                     content: Text("Wait For Admin Approval"),
-
                     actions: <Widget>[
                       ElevatedButton(
                           child: Text('OK'),
-                          style:ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(MyColorName.primaryLite),),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                MyColorName.primaryLite),
+                          ),
                           /* shape: RoundedRectangleBorder(
                                     side: BorderSide(color: Colors.transparent)),
                                 textColor: Theme.of(context).colorScheme.primary,*/
                           onPressed: () async {
                             Navigator.pushAndRemoveUntil(
                                 context,
-                                MaterialPageRoute(builder: (context) => LoginPage()),
-                                    (route) => false);
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                                (route) => false);
                           }),
                     ],
                   );
                 });
-           /* showDialog(
+            /* showDialog(
                 context: context,
                 builder: (context) {
                   return Dialog(
@@ -260,10 +272,10 @@ class _LoginUIState extends State<LoginUI> {
                       ),),
                   );
                 });*/
-          }else{
-            navigateScreen(context, RegisterPage(_numberController.text.trim()));
+          } else {
+            navigateScreen(
+                context, RegisterPage(_numberController.text.trim()));
           }
-
         }
       } on TimeoutException catch (_) {
         setSnackbar("Something Went Wrong", context);

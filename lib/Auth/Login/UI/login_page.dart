@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
+import 'package:qcabs_driver/DrawerPages/Profile/my_profile.dart';
 import 'package:qcabs_driver/utils/PushNotificationService.dart';
 import 'package:qcabs_driver/utils/common.dart';
 import 'package:qcabs_driver/utils/constant.dart';
@@ -14,32 +15,50 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> implements LoginInteractor {
-
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-   /* PushNotificationService notificationService = new PushNotificationService(context: context,onResult: (result){
+    /* PushNotificationService notificationService = new PushNotificationService(context: context,onResult: (result){
 
     });
     notificationService.initialise();*/
     changePage();
   }
-  changePage()async{
+
+  changePage() async {
     await App.init();
-    if(App.localStorage.getString("userId")!=null){
+
+    if (App.localStorage.getString("userId") != null) {
       curUserId = App.localStorage.getString("userId").toString();
-      GetLocation location = new GetLocation((result){
+      GetLocation location = new GetLocation((result) {
         /*    address = result.first.addressLine;
         latitude = result.first.coordinates.latitude;
         longitude = result.first.coordinates.longitude;*/
       });
       location.getLoc();
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> OfflinePage("")), (route) => false);
-
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => OfflinePage("")),
+          (route) => false);
+      return;
+    }
+    if (App.localStorage.getString("userProfileId") != null) {
+      curUserId = App.localStorage.getString("userProfileId").toString();
+      GetLocation location = new GetLocation((result) {
+        /*    address = result.first.addressLine;
+        latitude = result.first.coordinates.latitude;
+        longitude = result.first.coordinates.longitude;*/
+      });
+      location.getLoc();
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MyProfilePage()),
+          (route) => false);
+      return;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return LoginUI(this);
