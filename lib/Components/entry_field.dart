@@ -14,12 +14,13 @@ class EntryField extends StatelessWidget {
   final bool showUnderline;
   final IconData? prefixIcon;
   final Widget? suffixIcon;
-
+  ValueChanged? onChanged;
   var onTap;
   // final Widget? suffixIcondata;
 
   EntryField({
     this.controller,
+    this.onChanged,
     this.label,
     this.initialValue,
     this.readOnly,
@@ -31,7 +32,8 @@ class EntryField extends StatelessWidget {
     this.textCapitalization,
     this.showUnderline = true,
     this.prefixIcon,
-    this.suffixIcon,this.onTap,
+    this.suffixIcon,
+    this.onTap,
   });
   // this.suffixIcondata,
   @override
@@ -55,7 +57,6 @@ class EntryField extends StatelessWidget {
               if (prefixIcon != null)
                 Icon(
                   prefixIcon,
-
                   color: Theme.of(context).primaryColor,
                   size: 20,
                 ),
@@ -67,6 +68,7 @@ class EntryField extends StatelessWidget {
                       textCapitalization ?? TextCapitalization.sentences,
                   cursorColor: Theme.of(context).primaryColor,
                   autofocus: false,
+                  onChanged: onChanged,
                   onTap: onTap,
                   controller: controller,
                   readOnly: readOnly ?? false,

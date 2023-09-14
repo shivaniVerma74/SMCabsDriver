@@ -58,7 +58,6 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
             (route) => false);
 
         // widget.bankDetailsInteractor.addBank();
-
       } else {
         // ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
@@ -84,7 +83,7 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
     } else if (_bankCodeController.text.toString().isEmpty) {
       Fluttertoast.showToast(
-          msg: "Please Enter Bank Code",
+          msg: "Please Enter IFSC Code",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
@@ -136,7 +135,7 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        getTranslated(context,Strings.ENTER_BANK_DETAILS)!,
+                        getTranslated(context, Strings.ENTER_BANK_DETAILS)!,
                         style: theme.textTheme.headline4,
                       ),
                     ),
@@ -144,7 +143,7 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: Text(
-                        getTranslated(context,Strings.YOU_WILL_GET)!,
+                        getTranslated(context, Strings.YOU_WILL_GET)!,
                         style: theme.textTheme.bodyText2!
                             .copyWith(color: theme.hintColor),
                       ),
@@ -164,16 +163,16 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
                             ),
                             EntryField(
                               controller: _accNumberController,
-                              label: getTranslated(context,Strings.ACC_NUM),
+                              label: getTranslated(context, Strings.ACC_NUM),
                               keyboardType: TextInputType.number,
                             ),
                             EntryField(
                               controller: _bankNameController,
-                              label: getTranslated(context,Strings.BANK_NAME),
+                              label: getTranslated(context, Strings.BANK_NAME),
                             ),
                             EntryField(
                               controller: _bankCodeController,
-                              label: getTranslated(context,Strings.BANK_CODE),
+                              label: getTranslated(context, Strings.BANK_CODE),
                             ),
                             SizedBox(
                               height: 50,
@@ -199,7 +198,7 @@ class _BankDetailsUIState extends State<BankDetailsUI> {
                 // ),
                 Expanded(
                   child: CustomButton(
-                    text: getTranslated(context,Strings.ADD_BANK),
+                    text: getTranslated(context, Strings.ADD_BANK),
                     // onTap: () {},
                     onTap: () => _bankIn(),
                     //     widget.bankDetailsInteractor.addBank(),

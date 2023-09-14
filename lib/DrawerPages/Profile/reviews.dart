@@ -70,7 +70,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: AppDrawer(false),
+      //drawer: AppDrawer(false),
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
       ),

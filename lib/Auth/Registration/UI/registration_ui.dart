@@ -697,7 +697,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
                     return;
                   }
                   if (codeCon.text == "" || codeCon.text.length != 11) {
-                    setSnackbar("Please Enter Valid Bank Code", context);
+                    setSnackbar("Please Enter Valid IFSC Code", context);
                     return;
                   }
                   if (_image == null) {
@@ -710,11 +710,11 @@ class _RegistrationUIState extends State<RegistrationUI> {
                   }
                   if (panImage == null) {
                     setSnackbar(
-                        "Please Upload Citizenship/Passport Photo", context);
+                        "Please Upload Citizenship/AadharCard Photo", context);
                     return;
                   }
                   if (adharImage == null) {
-                    setSnackbar("Please Upload Blue Book Photo", context);
+                    setSnackbar("Please Upload RC Book Photo", context);
                     return;
                   }
                   if (insuranceImage == null) {
@@ -785,7 +785,8 @@ class _RegistrationUIState extends State<RegistrationUI> {
     var image = await ImagePickerGC.pickImage(
       context: context,
       source: source,
-      imageQuality: 30,
+      maxHeight: 480,
+      maxWidth: 480,
       cameraIcon: Icon(
         Icons.add,
         color: Colors.red,
@@ -804,7 +805,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
           CropAspectRatioPreset.ratio4x3,
           CropAspectRatioPreset.ratio16x9
         ],
-        compressQuality: 60,
+        compressQuality: 40,
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: 'Cropper',
             toolbarColor: Colors.lightBlueAccent,

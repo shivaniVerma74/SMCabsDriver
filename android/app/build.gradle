@@ -43,16 +43,19 @@ android {
         checkReleaseBuilds false
     }
 
+    aaptOptions {
+        cruncherEnabled = false
+    }
+
     defaultConfig {
-        applicationId "com.sahayatri.driver"
-        minSdkVersion 21
+        applicationId "com.smcabs.driver"
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias']
@@ -61,10 +64,9 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }

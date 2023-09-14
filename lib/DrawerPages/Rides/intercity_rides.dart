@@ -9,6 +9,7 @@ import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/ride_info_page.dart';
 import 'package:qcabs_driver/Locale/strings_enum.dart';
+import 'package:qcabs_driver/Model/intercity_model.dart';
 import 'package:qcabs_driver/Model/latlng_model.dart';
 import 'package:qcabs_driver/Model/my_ride_model.dart';
 import 'package:qcabs_driver/Model/rides_model.dart';
@@ -27,20 +28,20 @@ import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Assets/assets.dart';
 
-class RentalRides extends StatefulWidget {
+class IntercityRides extends StatefulWidget {
   bool selected;
 
-  RentalRides({this.selected = false});
+  IntercityRides({this.selected = false});
 
   @override
-  State<RentalRides> createState() => _RentalRidesState();
+  State<IntercityRides> createState() => _IntercityRidesState();
 }
 
-class _RentalRidesState extends State<RentalRides> {
+class _IntercityRidesState extends State<IntercityRides> {
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
   bool loading = true;
-  List<MyRideModel> rideList = [];
+  List<IntercityRideModel> rideList = [];
   String km = "0", time = "";
   int minute = 0;
   int? indexSelected;
@@ -55,9 +56,10 @@ class _RentalRidesState extends State<RentalRides> {
         "driver_id": curUserId,
         "type": type,
       };
+
       print("GET ALL COMPLETE ========= $params");
       Map response = await apiBase.postAPICall(
-          Uri.parse(baseUrl1 + "Payment/rental_Bookint_by_driver_id"), params);
+          Uri.parse(baseUrl1 + "Payment/intercity_booking_driver"), params);
       setState(() {
         loading = false;
         rideList.clear();
@@ -67,15 +69,8 @@ class _RentalRidesState extends State<RentalRides> {
         for (var v in response['data']) {
           setState(() {
             selectedFil = "All";
-            rideList.add(MyRideModel.fromJson(v));
+            rideList.add(IntercityRideModel.fromJson(v));
           });
-        }
-        if (type == "1") {
-          indexSelected =
-              rideList.indexWhere((element) => element.acceptReject == "6");
-          if (indexSelected != -1) {
-            getLocation();
-          }
         }
       } else {
         setState(() {
@@ -104,71 +99,6 @@ class _RentalRidesState extends State<RentalRides> {
   }
 
   double lastLat = 0;
-  getLocation() {
-    GetLocation location = new GetLocation((result) async {
-      if (mounted) {
-        setState(() {
-          print(indexSelected);
-          latitude = result.first.coordinates.latitude;
-          longitude = result.first.coordinates.longitude;
-          if (indexSelected != null &&
-              indexSelected != -1 &&
-              rideList.length > 0) {
-            List<String> calTime =
-                rideList[indexSelected!].start_time!.split(":");
-            DateTime firstTime = DateTime(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day,
-                int.parse(calTime[0]),
-                int.parse(calTime[1]));
-            print(calTime.toString());
-            minute = DateTime.now().difference(firstTime).inMinutes;
-            time = durationToString(
-                DateTime.now().difference(firstTime).inMinutes);
-          }
-        });
-        if (indexSelected != null &&
-            indexSelected != -1 &&
-            rideList.length > 0) {
-          Map data1 = {
-            "booking_id": rideList[indexSelected!].bookingId.toString(),
-          };
-          Map response1 = await apiBase.postAPICall(
-              Uri.parse(baseUrl1 + "Payment/driver_latitude_logitude"), data1);
-          print(response1);
-          List<LatLngModel> tempList = [];
-          if (response1['status']) {
-            for (var v in response1['booking_id']) {
-              tempList.add(LatLngModel.fromJson(v));
-            }
-            double totalDistance = 0;
-            for (var i = 0; i < tempList.length - 1; i++) {
-              totalDistance += calculateDistance(tempList[i].lat,
-                  tempList[i].lang, tempList[i + 1].lat, tempList[i + 1].lang);
-            }
-            km = totalDistance.toStringAsFixed(2);
-            print("total" + totalDistance.toString());
-          }
-        }
-        if (indexSelected != null && indexSelected != -1) {
-          if (lastLat != latitude) {
-            lastLat = latitude;
-            apiBase.postAPICall(
-                Uri.parse(
-                    "http://smcab.in/api/Payment/driver_last_lat_lang"),
-                {
-                  "driver_id": curUserId,
-                  "booking_id": rideList[indexSelected!].bookingId,
-                  "lat": latitude.toString(),
-                  "lang": longitude.toString(),
-                }).then((value) {});
-          }
-        }
-      }
-    }, status: true);
-    location.getLoc();
-  }
 
   @override
   void initState() {
@@ -218,7 +148,7 @@ class _RentalRidesState extends State<RentalRides> {
           ),
           backgroundColor: AppTheme.primaryColor,
           title: Text(
-            getTranslated(context, "RENTAL_RIDES")!,
+            "Intercity Rides",
             style: theme.textTheme.headline4,
           ),
         ),
@@ -430,30 +360,26 @@ class _RentalRidesState extends State<RentalRides> {
                                           showShadow: true),
                                       child: Column(
                                         children: [
-                                          indexSelected != null &&
-                                                  indexSelected != -1 &&
-                                                  indexSelected == index
-                                              ? Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                      vertical: 5,
-                                                      horizontal: 5),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        'Time- $time/min.',
-                                                        style: theme.textTheme
-                                                            .bodyText1,
-                                                      ),
-                                                      Text(
-                                                        'Km- $km/Km.',
-                                                        style: theme.textTheme
-                                                            .bodyText1,
-                                                      ),
-                                                    ],
-                                                  ),
+                                          rideList[index].adminCommision != null
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    text(
+                                                        "${getTranslated(context, "Admincommission")} : ",
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                    text(
+                                                        "₹" +
+                                                            "${rideList[index].adminCommision}",
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                  ],
                                                 )
                                               : SizedBox(),
                                           Container(
@@ -465,12 +391,12 @@ class _RentalRidesState extends State<RentalRides> {
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                  'Extra Time- \u{20B9}${rideList[index].extra_time_charge.toString()}/min.',
+                                                  'Pickup City- ${rideList[index].pickupCity.toString()}',
                                                   style:
                                                       theme.textTheme.bodyText1,
                                                 ),
                                                 Text(
-                                                  'Extra Km- \u{20B9}${rideList[index].extra_km_charge.toString()}/Km.',
+                                                  'Drop City- \u{20B9}${rideList[index].dropCity.toString()}',
                                                   style:
                                                       theme.textTheme.bodyText1,
                                                 ),
@@ -478,102 +404,186 @@ class _RentalRidesState extends State<RentalRides> {
                                             ),
                                           ),
                                           Divider(),
-                                          Container(
-                                            height: 90,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 12, horizontal: 16),
-                                            child: Row(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: Container(
-                                                      height: getWidth(72),
-                                                      width: getWidth(72),
-                                                      decoration: boxDecoration(
-                                                          radius: 10,
-                                                          color: Colors.grey),
-                                                      child: Image.network(
-                                                        imagePath +
-                                                            rideList[index]
-                                                                .userImage
-                                                                .toString(),
-                                                        height: getWidth(72),
-                                                        width: getWidth(72),
-                                                      )),
-                                                ),
-                                                SizedBox(width: 16),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      'Trip ID-${getString1(rideList[index].uneaqueId.toString())}',
-                                                      style: theme
-                                                          .textTheme.bodyText1,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 5,
-                                                    ),
-                                                    Text(
-                                                      '${getDate(rideList[index].createdDate)}',
-                                                      style: theme
-                                                          .textTheme.bodySmall,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 5,
-                                                    ),
-                                                    Text(
-                                                      getString1(rideList[index]
-                                                          .username
-                                                          .toString()),
-                                                      style: theme
-                                                          .textTheme.caption,
-                                                    ),
-                                                  ],
-                                                ),
-                                                Spacer(),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: [
-                                                    Text(
-                                                      '\u{20B9} ${rideList[index].amount}',
-                                                      style: theme
-                                                          .textTheme.bodyText2!
-                                                          .copyWith(
-                                                              color: theme
-                                                                  .primaryColor),
-                                                    ),
-                                                    IconButton(
-                                                        padding:
-                                                            EdgeInsets.all(5.0),
-                                                        onPressed: () {
-                                                          launch(
-                                                              "tel://${rideList[index].mobile}");
-                                                        },
-                                                        icon: Icon(Icons.call))
-                                                  ],
-                                                ),
-                                              ],
+                                          ExpansionTile(
+                                            title: Text(
+                                              'Trip ID- ${rideList[index].bookingId}',
+                                              style: theme.textTheme.bodyText1,
                                             ),
+                                            subtitle: Text(
+                                              'Payment Method- ${rideList[index].transaction}',
+                                              style: theme.textTheme.bodyText1,
+                                            ),
+                                            children: [
+                                              if (rideList[index]
+                                                      .shareUserData !=
+                                                  null)
+                                                for (int i = 0;
+                                                    i <
+                                                        rideList[index]
+                                                            .shareUserData!
+                                                            .length;
+                                                    i++)
+                                                  Container(
+                                                    child: Column(
+                                                      children: [
+                                                        Container(
+                                                          height: 80,
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 12,
+                                                                  horizontal:
+                                                                      16),
+                                                          child: Row(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                                child:
+                                                                    Container(
+                                                                        height: getWidth(
+                                                                            72),
+                                                                        width: getWidth(
+                                                                            72),
+                                                                        decoration: boxDecoration(
+                                                                            radius:
+                                                                                10,
+                                                                            color: Colors
+                                                                                .grey),
+                                                                        child: Image
+                                                                            .network(
+                                                                          imagePath +
+                                                                              rideList[index].shareUserData![i].userImage.toString(),
+                                                                          height:
+                                                                              getWidth(72),
+                                                                          width:
+                                                                              getWidth(72),
+                                                                        )),
+                                                              ),
+                                                              SizedBox(
+                                                                  width: 16),
+                                                              Column(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Text(
+                                                                    getString1(rideList[
+                                                                            index]
+                                                                        .shareUserData![
+                                                                            i]
+                                                                        .username
+                                                                        .toString()),
+                                                                    style: theme
+                                                                        .textTheme
+                                                                        .bodyText1,
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 5,
+                                                                  ),
+                                                                  Text(
+                                                                    '\u{20B9} ${rideList[index].shareUserData![i].totalAmount}',
+                                                                    style: theme
+                                                                        .textTheme
+                                                                        .bodyText2!
+                                                                        .copyWith(
+                                                                            color:
+                                                                                theme.primaryColor),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              Spacer(),
+                                                              IconButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    launch(
+                                                                        "tel://${rideList[index].shareUserData![i].mobile}");
+                                                                  },
+                                                                  icon: Icon(Icons
+                                                                      .call)),
+                                                              rideList[index]
+                                                                          .shareUserData![
+                                                                              i]
+                                                                          .pickup_status
+                                                                          .toString() !=
+                                                                      "1"
+                                                                  ? IconButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        pickupPerson(
+                                                                            rideList[index].bookingId!,
+                                                                            rideList[index].shareUserData![i].userId);
+                                                                      },
+                                                                      icon: Icon(
+                                                                          Icons
+                                                                              .check))
+                                                                  : SizedBox(),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        ListTile(
+                                                          leading: Icon(
+                                                            Icons.location_on,
+                                                            color: theme
+                                                                .primaryColor,
+                                                            size: 20,
+                                                          ),
+                                                          trailing: IconButton(
+                                                              onPressed: () {
+                                                                String url =
+                                                                    "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${rideList[index].shareUserData![i].latitude},${rideList[index].shareUserData![i].longitude}&travelmode=driving&dir_action=navigate";
+                                                                launch(url);
+                                                                print(url);
+                                                              },
+                                                              icon: Icon(Icons
+                                                                  .arrow_forward)),
+                                                          title: Text(getString1(
+                                                              rideList[index]
+                                                                  .shareUserData![
+                                                                      i]
+                                                                  .pickupAddress
+                                                                  .toString())),
+                                                          dense: true,
+                                                          tileColor:
+                                                              theme.cardColor,
+                                                        ),
+                                                        ListTile(
+                                                          leading: Icon(
+                                                            Icons.navigation,
+                                                            color: theme
+                                                                .primaryColor,
+                                                            size: 20,
+                                                          ),
+                                                          trailing: IconButton(
+                                                              onPressed: () {
+                                                                String url =
+                                                                    "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${rideList[index].shareUserData![i].dropLatitude},${rideList[index].shareUserData![i].dropLongitude}&travelmode=driving&dir_action=navigate";
+                                                                launch(url);
+                                                                print(url);
+                                                              },
+                                                              icon: Icon(Icons
+                                                                  .arrow_forward)),
+                                                          title: Text(getString1(
+                                                              rideList[index]
+                                                                  .shareUserData![
+                                                                      i]
+                                                                  .dropAddress
+                                                                  .toString())),
+                                                          dense: true,
+                                                          tileColor:
+                                                              theme.cardColor,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                            ],
                                           ),
-                                          ListTile(
-                                            leading: Icon(
-                                              Icons.location_on,
-                                              color: theme.primaryColor,
-                                              size: 20,
-                                            ),
-                                            title: Text(getString1(
-                                                rideList[index]
-                                                    .pickupAddress
-                                                    .toString())),
-                                            dense: true,
-                                            tileColor: theme.cardColor,
+                                          SizedBox(
+                                            height: 5,
                                           ),
                                           Row(
                                             mainAxisAlignment:
@@ -582,13 +592,7 @@ class _RentalRidesState extends State<RentalRides> {
                                               AnimatedTextKit(
                                                 animatedTexts: [
                                                   ColorizeAnimatedText(
-                                                    rideList[index]
-                                                            .bookingType
-                                                            .toString()
-                                                            .contains(
-                                                                "Rental Booking")
-                                                        ? "Rental Booking\n${rideList[index].start_time} - ${rideList[index].end_time}"
-                                                        : "Schedule - ${rideList[index].pickupDate} ${rideList[index].pickupTime}",
+                                                    "Schedule - ${rideList[index].pickupDate} ${rideList[index].pickupTime}",
                                                     textStyle:
                                                         colorizeTextStyle,
                                                     colors: colorizeColors,
@@ -606,12 +610,11 @@ class _RentalRidesState extends State<RentalRides> {
                                                 animatedTexts: [
                                                   ColorizeAnimatedText(
                                                     rideList[index]
-                                                            .bookingType
-                                                            .toString()
-                                                            .contains(
-                                                                "Rental Booking")
-                                                        ? "Allow Time/KM\n${rideList[index].hours}min. - ${rideList[index].km}KM"
-                                                        : "",
+                                                                .shareingType
+                                                                .toString() !=
+                                                            "1"
+                                                        ? "Ride Type - Personal"
+                                                        : "Ride Type - Sharing",
                                                     textStyle:
                                                         colorizeTextStyle,
                                                     colors: colorizeColors,
@@ -627,25 +630,27 @@ class _RentalRidesState extends State<RentalRides> {
                                               ),
                                             ],
                                           ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
                                           Divider(),
                                           rideList[index].acceptReject != "3"
                                               ? Row(
                                                   mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceEvenly,
+                                                      MainAxisAlignment.end,
                                                   children: [
-                                                    InkWell(
+                                                    /*InkWell(
                                                       onTap: () {
                                                         String url =
-                                                            "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${rideList[index].latitude},${rideList[index].longitude}&travel_mode=driving&dir_action=navigate";
+                                                            "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${rideList[index].latitude},${rideList[index].longitude}&travelmode=driving&dir_action=navigate";
 
                                                         print(url);
                                                         launch(url);
                                                       },
                                                       child: Container(
                                                         width: 30.w,
-                                                        margin: EdgeInsets
-                                                            .symmetric(
+                                                        margin:
+                                                            EdgeInsets.symmetric(
                                                                 vertical: 5,
                                                                 horizontal: 16),
                                                         height: 5.h,
@@ -671,36 +676,16 @@ class _RentalRidesState extends State<RentalRides> {
                                                                         .white,
                                                                   )),
                                                       ),
-                                                    ),
+                                                    ),*/
                                                     InkWell(
                                                       onTap: () {
-                                                        setState(() {
-                                                          acceptStatus = true;
-                                                        });
+                                                        if (checkStatus(
+                                                            index)) {
+                                                          return;
+                                                        }
                                                         if (rideList[index]
                                                                 .acceptReject ==
                                                             "1") {
-                                                          print(
-                                                              "this is booking id ${rideList[index].id!.toString()}");
-                                                          DateTime startTime =
-                                                              DateTime.now();
-                                                          DateTime endTime =
-                                                              DateFormat(
-                                                                      'HH:mm:ss')
-                                                                  .parse(rideList[
-                                                                          index]
-                                                                      .end_time
-                                                                      .toString());
-                                                          print(
-                                                              "this is start time and end time ${startTime.toString()} ${endTime.toString()}");
-                                                          Duration difference =
-                                                              endTime.difference(
-                                                                  startTime);
-                                                          int differenceInMinutes =
-                                                              difference
-                                                                  .inMinutes;
-                                                          print(
-                                                              'Time difference in minutes: $differenceInMinutes');
                                                           startRide(
                                                               rideList[index]
                                                                   .bookingId!,
@@ -727,9 +712,12 @@ class _RentalRidesState extends State<RentalRides> {
                                                         height: 5.h,
                                                         decoration: boxDecoration(
                                                             radius: 5,
-                                                            bgColor: Theme.of(
-                                                                    context)
-                                                                .primaryColor),
+                                                            bgColor: checkStatus(
+                                                                    index)
+                                                                ? Colors.grey
+                                                                : Theme.of(
+                                                                        context)
+                                                                    .primaryColor),
                                                         child: Center(
                                                             child: !acceptStatus
                                                                 ? text(
@@ -754,60 +742,7 @@ class _RentalRidesState extends State<RentalRides> {
                                                     ),
                                                   ],
                                                 )
-                                              : Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    AnimatedTextKit(
-                                                      animatedTexts: [
-                                                        ColorizeAnimatedText(
-                                                          rideList[index]
-                                                                      .transaction !=
-                                                                  null
-                                                              ? "Payment Method - ${rideList[index].transaction}"
-                                                              : "Payment Method - Wait",
-                                                          textStyle:
-                                                              colorizeTextStyle,
-                                                          colors:
-                                                              colorizeColors,
-                                                        ),
-                                                      ],
-                                                      pause: Duration(
-                                                          milliseconds: 100),
-                                                      isRepeatingAnimation:
-                                                          true,
-                                                      totalRepeatCount: 100,
-                                                      onTap: () {
-                                                        print("Tap Event");
-                                                      },
-                                                    ),
-                                                    AnimatedTextKit(
-                                                      animatedTexts: [
-                                                        ColorizeAnimatedText(
-                                                          rideList[index]
-                                                                      .payment_status
-                                                                      .toString() !=
-                                                                  "1"
-                                                              ? "Payment Status - DONE"
-                                                              : "Payment Status - Wait",
-                                                          textStyle:
-                                                              colorizeTextStyle,
-                                                          colors:
-                                                              colorizeColors,
-                                                        ),
-                                                      ],
-                                                      pause: Duration(
-                                                          milliseconds: 100),
-                                                      isRepeatingAnimation:
-                                                          true,
-                                                      totalRepeatCount: 100,
-                                                      onTap: () {
-                                                        print("Tap Event");
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
+                                              : SizedBox(),
                                           SizedBox(height: 12),
                                         ],
                                       ),
@@ -833,27 +768,31 @@ class _RentalRidesState extends State<RentalRides> {
     );
   }
 
+  bool checkStatus(index) {
+    for (int i = 0; i < rideList[index].shareUserData!.length; i++) {
+      if (rideList[index].shareUserData![i].pickup_status.toString() != "1") {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool loading1 = true;
   bool acceptStatus = false;
   TextEditingController otpController = TextEditingController();
+
   bookingStatus(String bookingId, status1, hour, km1) async {
     await App.init();
     isNetwork = await isNetworkAvailable();
     if (isNetwork) {
       try {
         Map data;
-        int min1 = hour != null ? minute - int.parse(hour) : minute;
-        double km2 = km1 != null
-            ? double.parse(km) - double.parse(km1)
-            : double.parse(km);
         data = {
           "driver_id": curUserId,
           "accept_reject": status1.toString(),
           "booking_id": bookingId,
           "otp": otpController.text,
-          "type": "Rental Booking",
-          "extra_time": min1.isNegative ? "0" : min1.toString(),
-          "extra_distance": km2.isNegative ? "0" : km2.toStringAsFixed(2),
+          "type": "intercity",
         };
         print("COMPLETE RIDE === $data");
         // return;
@@ -1094,16 +1033,63 @@ class _RentalRidesState extends State<RentalRides> {
         });
   }
 
+  pickupPerson(String bookingId, userId) async {
+    await App.init();
+    isNetwork = await isNetworkAvailable();
+    if (isNetwork) {
+      try {
+        setState(() {
+          acceptStatus = true;
+        });
+        Map data;
+        data = {
+          "driver_id": curUserId,
+          "booking_id": bookingId.toString(),
+          "user_id": userId,
+        };
+        print("Start Ride ==== $data");
+        // return;
+        Map response = await apiBase.postAPICall(
+            Uri.parse(baseUrl1 + "Payment/pickup_user"), data);
+        print(response);
+        print(response);
+        setState(() {
+          acceptStatus = false;
+        });
+        bool status = true;
+        String msg = response['message'];
+        getRides("1");
+        /*Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    RentalRideInfoPage(rideList[index])));*/
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => MapScreen()));
+        setSnackbar(msg, context);
+        if (response['status']) {
+        } else {}
+      } on TimeoutException catch (_) {
+        setSnackbar("Something Went Wrong", context);
+      }
+    } else {
+      setSnackbar("No Internet Connection", context);
+    }
+  }
+
   startRideOtp(String bookingId, status1, int index) async {
     await App.init();
     isNetwork = await isNetworkAvailable();
     if (isNetwork) {
       try {
+        setState(() {
+          acceptStatus = true;
+        });
         Map data;
         data = {
           "driver_id": curUserId,
           "accept_reject": status1.toString(),
           "booking_id": bookingId,
+          "type": "intercity",
           'otp': otpController.text.toString()
         };
         print("Start Ride ==== $data");

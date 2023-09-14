@@ -77,7 +77,7 @@ class _FaqPageState extends State<FaqPage> {
           style: theme.textTheme.headline4,
         ),
       ),
-      drawer: AppDrawer(false),
+     // drawer: AppDrawer(false),
       body: FadedSlideAnimation(
         SingleChildScrollView(
           child: Column(

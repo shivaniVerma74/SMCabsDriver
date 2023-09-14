@@ -10,6 +10,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
+import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/Provider/UserProvider.dart';
 import 'package:qcabs_driver/Theme/style.dart';
 import 'package:qcabs_driver/utils/Demo_Localization.dart';
@@ -51,14 +52,13 @@ void main() async {
             channelDescription: 'Notification channel for basic tests',
             defaultColor: Color(0xFF9D50DD),
             ledColor: Colors.white,
-            importance: NotificationImportance.High
-        ),
+            importance: NotificationImportance.High),
       ],
       channelGroups: [
-        NotificationChannelGroup(channelGroupkey: 'basic_tests', channelGroupName: 'Basic tests'),
+        NotificationChannelGroup(
+            channelGroupkey: 'basic_tests', channelGroupName: 'Basic tests'),
       ],
-      debug: true
-  );
+      debug: true);
 
   runApp(MultiBlocProvider(providers: [
     BlocProvider(create: (context) => LanguageCubit(locale)),
@@ -68,9 +68,11 @@ void main() async {
 
 class CabiraDriver extends StatefulWidget {
   static void setLocale(BuildContext context, Locale newLocale) {
-    _CabiraDriverState state = context.findAncestorStateOfType<_CabiraDriverState>()!;
+    _CabiraDriverState state =
+        context.findAncestorStateOfType<_CabiraDriverState>()!;
     state.setLocale(newLocale);
   }
+
   @override
   State<CabiraDriver> createState() => _CabiraDriverState();
 }
@@ -97,6 +99,7 @@ class _CabiraDriverState extends State<CabiraDriver> {
     });
     super.didChangeDependencies();
   }
+
   @override
   initState() {
     super.initState();
@@ -106,71 +109,79 @@ class _CabiraDriverState extends State<CabiraDriver> {
   initPlatformState() async {
     await App.init();
     bool keptOn = await Screen.isKeptOn;
-    if(App.localStorage.getBool("lock")!=null){
+    if (App.localStorage.getBool("lock") != null) {
       doLock = App.localStorage.getBool("lock")!;
       Screen.keepOn(App.localStorage.getBool("lock"));
     }
-    if(App.localStorage.getBool("notification")!=null){
+    if (App.localStorage.getBool("notification") != null) {
       notification = App.localStorage.getBool("notification")!;
     }
     double brightness = await Screen.brightness;
-    setState((){
+    setState(() {
       _isKeptOn = keptOn;
       _brightness = brightness;
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
-    return Sizer(
-      builder: (context,orientation,deviceType) {
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (context)=> UserProvider())
-          ],
-          child: BlocBuilder<LanguageCubit, Locale>(
-            builder: (context, locale) {
-              return BlocBuilder<ThemeCubit, ThemeData>(
-                builder: (context, theme) {
-                  return MaterialApp(
-                    locale: _locale,
-                    supportedLocales: [
-                      Locale("en", "US"),
-                      Locale("ne", "NPL"),
-                    ],
-                    localizationsDelegates: [
-                      DemoLocalization.delegate,
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate,
-                    ],
-                    localeResolutionCallback: (locale, supportedLocales) {
-                      for (var supportedLocale in supportedLocales) {
-                        if (supportedLocale.languageCode == locale!.languageCode &&
-                            supportedLocale.countryCode == locale.countryCode) {
-                          return supportedLocale;
-                        }
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
+    return Sizer(builder: (context, orientation, deviceType) {
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => UserProvider())
+        ],
+        child: BlocBuilder<LanguageCubit, Locale>(
+          builder: (context, locale) {
+            return BlocBuilder<ThemeCubit, ThemeData>(
+              builder: (context, theme) {
+                return MaterialApp(
+                  locale: _locale,
+                  supportedLocales: [
+                    Locale("en", "US"),
+                    Locale("ne", "NPL"),
+                  ],
+                  localizationsDelegates: [
+                    DemoLocalization.delegate,
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  routes: {
+                    '/': (BuildContext context) => OfflinePage(""),
+                    'Login': (BuildContext context) => LoginPage(),
+                  },
+                  localeResolutionCallback: (locale, supportedLocales) {
+                    for (var supportedLocale in supportedLocales) {
+                      if (supportedLocale.languageCode ==
+                              locale!.languageCode &&
+                          supportedLocale.countryCode == locale.countryCode) {
+                        return supportedLocale;
                       }
-                      return supportedLocales.first;
-                    },
-                    theme: theme,
-                    home: LoginPage(),
-                    routes: PageRoutes().routes(),
-                    debugShowCheckedModeBanner: false,
-                  );
-                },
-              );
-            },
-          ),
-        );
-      }
-    );
+                    }
+                    return supportedLocales.first;
+                  },
+                  theme: theme,
+                  initialRoute: "Login",
+                  //  home: LoginPage(),
+                  //routes: PageRoutes().routes(),
+                  debugShowCheckedModeBanner: false,
+                );
+              },
+            );
+          },
+        ),
+      );
+    });
   }
 }
-class MyHttpOverrides extends HttpOverrides{
+
+class MyHttpOverrides extends HttpOverrides {
   @override
-  HttpClient createHttpClient(SecurityContext? context){
+  HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }

@@ -53,11 +53,12 @@ class _ContactUsPageState extends State<ContactUsPage> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
-      drawer: AppDrawer(false),
+      //  drawer: AppDrawer(false),
       body: FadedSlideAnimation(
         Stack(
           alignment: Alignment.bottomCenter,
@@ -72,11 +73,11 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        getTranslated(context,"CONTACT_US")!,
+                        getTranslated(context, "CONTACT_US")!,
                         style: theme.textTheme.headline4,
                       ),
                     ),
-                   /* Padding(
+                    /* Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       child: Text(
                         getTranslated(context,Strings.ENTER_PROMO_CODE_TO)!,
@@ -85,7 +86,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                       ),
                     ),*/
                     SizedBox(height: 32),
-                   /* Row(
+                    /* Row(
                       children: [
                         Expanded(
                           child: CustomButton(
@@ -113,7 +114,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                               Padding(
                                 padding: EdgeInsets.fromLTRB(24, 48, 24, 0),
                                 child: Text(
-                                  getTranslated(context,"WRITE_US")!,
+                                  getTranslated(context, "WRITE_US")!,
                                   style: theme.textTheme.headline4,
                                 ),
                               ),
@@ -121,21 +122,23 @@ class _ContactUsPageState extends State<ContactUsPage> {
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                                 child: Text(
-                                  getTranslated(context,"DESC_YOUR_ISSUE")!,
+                                  getTranslated(context, "DESC_YOUR_ISSUE")!,
                                   style: theme.textTheme.bodyText2!
                                       .copyWith(color: theme.hintColor),
                                 ),
                               ),
                               SizedBox(height: 20),
                               EntryField(
-                                label: getTranslated(context,Strings.YOUR_EMAIL),
+                                label:
+                                    getTranslated(context, Strings.YOUR_EMAIL),
                                 initialValue: email,
-                                readOnly:  true,
+                                readOnly: true,
                               ),
                               SizedBox(height: 20),
                               EntryField(
                                 controller: _controller,
-                                label: getTranslated(context,Strings.DESC_YOUR_ISSUE),
+                                label: getTranslated(
+                                    context, Strings.DESC_YOUR_ISSUE),
                               ),
                               // Spacer(),
                             ],
@@ -143,7 +146,6 @@ class _ContactUsPageState extends State<ContactUsPage> {
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -154,16 +156,20 @@ class _ContactUsPageState extends State<ContactUsPage> {
         endOffset: Offset(0, 0),
         slideCurve: Curves.linearToEaseOut,
       ),
-      bottomNavigationBar: !saveStatus?CustomButton(
-        text: getTranslated(context,"SUBMIT"),
-        onTap: (){
-          if(_controller.text==""){
-            setSnackbar("Please Fill Description", context);
-            return;
-          }
-          addContact();
-        },
-      ):Center(child: CircularProgressIndicator(),),
+      bottomNavigationBar: !saveStatus
+          ? CustomButton(
+              text: getTranslated(context, "SUBMIT"),
+              onTap: () {
+                if (_controller.text == "") {
+                  setSnackbar("Please Fill Description", context);
+                  return;
+                }
+                addContact();
+              },
+            )
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
     );
   }
 }

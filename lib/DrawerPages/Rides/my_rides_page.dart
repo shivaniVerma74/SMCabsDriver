@@ -80,40 +80,64 @@ class _MyRidesPageState extends State<MyRidesPage> {
     }
   }
 
+  Future<bool> onWill() {
+    Navigator.pop(context, true);
+    /* Navigator.popUntil(
+      context,
+      ModalRoute.withName('/'),
+    );*/
+    /*Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => SearchLocationPage()),
+        (route) => false);*/
+
+    return Future.value();
+  }
+
   bool selected = false;
   List<String> filter = ["All", "Today", "Weekly", "Monthly"];
   String selectedFil = "All";
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        title: Text(
-          getTranslated(context, "MY_RIDES")!,
-          style: theme.textTheme.headline4,
+    return WillPopScope(
+      onWillPop: onWill,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            ),
+          ),
+          backgroundColor: AppTheme.primaryColor,
+          title: Text(
+            getTranslated(context, "MY_RIDES")!,
+            style: theme.textTheme.headline4,
+          ),
         ),
-      ),
-      body: FadedSlideAnimation(
-        SingleChildScrollView(
+        body: SingleChildScrollView(
           child: Column(
             children: [
               /*  Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                getTranslated(context,Strings.MY_RIDES)!,
-                style: theme.textTheme.headline4,
-              ),
-            ),*/
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  getTranslated(context,Strings.MY_RIDES)!,
+                  style: theme.textTheme.headline4,
+                ),
+              ),*/
               /* Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Text(
-                getTranslated(context,Strings.LIST_OF_RIDES_COMPLETED)!,
-                style:
-                    theme.textTheme.bodyText2!.copyWith(color: theme.hintColor),
-              ),
-            ),*/
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Text(
+                  getTranslated(context,Strings.LIST_OF_RIDES_COMPLETED)!,
+                  style:
+                      theme.textTheme.bodyText2!.copyWith(color: theme.hintColor),
+                ),
+              ),*/
               boxHeight(10),
               Container(
                 width: getWidth(322.1),
@@ -154,7 +178,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
                             fontFamily: fontSemibold,
                             fontSize: 11.sp,
                             textColor:
-                                !selected ? Colors.white : Color(0xff37778A),
+                                !selected ? Colors.white : Color(0xff589605),
                           ),
                         ),
                       ),
@@ -188,7 +212,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
                             fontFamily: fontSemibold,
                             fontSize: 11.sp,
                             textColor:
-                                selected ? Colors.white : Color(0xff37778A),
+                                selected ? Colors.white : Color(0xff589605),
                           ),
                         ),
                       ),
@@ -286,12 +310,27 @@ class _MyRidesPageState extends State<MyRidesPage> {
                           shrinkWrap: true,
                           itemBuilder: (context, index) => rideList[index].show!
                               ? GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    var result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                RideInfoPage(rideList[index])));
+                                            builder: (context) => RideInfoPage(
+                                                  rideList[index],
+                                                  check: rideList[index]
+                                                              .acceptReject !=
+                                                          "3"
+                                                      ? null
+                                                      : "yes",
+                                                )));
+                                    if (result != null) {
+                                      if (!selected) {
+                                        getRides("1");
+                                      } else {
+                                        getRides("3");
+                                      }
+                                      //  getRides(type);
+                                    }
+                                    if (rideList[index].acceptReject != "3") {}
                                   },
                                   child: Container(
                                     margin: EdgeInsets.all(getWidth(10)),
@@ -488,9 +527,6 @@ class _MyRidesPageState extends State<MyRidesPage> {
             ],
           ),
         ),
-        beginOffset: Offset(0, 0.3),
-        endOffset: Offset(0, 0),
-        slideCurve: Curves.linearToEaseOut,
       ),
     );
   }
@@ -504,6 +540,6 @@ final colorizeColors = [
 ];
 
 final colorizeTextStyle = TextStyle(
-  fontSize: 10.0,
+  fontSize: 12.0,
   fontFamily: 'Horizon',
 );

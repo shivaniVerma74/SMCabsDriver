@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.sahayatri.driver">
+    package="com.smcabs.driver">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-feature  android:name="android.hardware.camera"  android:required="true"/>
     <queries>
         <!-- If your app opens https URLs -->
         <intent>
@@ -33,8 +34,7 @@
         </intent>
     </queries>
     <application
-        android:label="Sahayatri Driver"
-
+        android:label="SM Cabs Driver"
         android:icon="@mipmap/ic_launcher">
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -47,6 +47,7 @@
                 android:resource="@xml/provider_paths" />
         </provider>
         <activity
+            android:exported="true"
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
@@ -95,7 +96,7 @@
             android:value="high_importance_channel" />-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBmUCtQ_DlYKSU_BV7JdiyoOu1i4ybe-z0" />
+            android:value="AIzaSyDPsdTq-a4AHYHSNvQsdAlZgWvRu11T9pM" />
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~6300978111"/>

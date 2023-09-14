@@ -32,7 +32,7 @@ Map<String, String> english= {
     Strings.YOU_WILL_GET: 'You will get all your payment in this bank account',
     Strings.BANK_NAME: 'Bank Name',
     Strings.ACC_NUM: 'Account Number',
-    Strings.BANK_CODE: 'Bank Code',
+    Strings.BANK_CODE: 'IFSC Code',
     Strings.SKIP: 'Skip',
     Strings.ADD_BANK: 'Add Bank',
     Strings.CONTACT_US: 'Contact us',

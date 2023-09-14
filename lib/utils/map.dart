@@ -7,8 +7,8 @@ import 'package:qcabs_driver/Theme/style.dart';
 import 'package:qcabs_driver/utils/constant.dart';
 import 'package:qcabs_driver/utils/location_details.dart';
 
-const double CAMERA_ZOOM = 15;
-const double CAMERA_TILT = 0;
+const double CAMERA_ZOOM = 16;
+const double CAMERA_TILT = 40;
 const double CAMERA_BEARING = 30;
 
 class MapPage extends StatefulWidget {
@@ -16,10 +16,12 @@ class MapPage extends StatefulWidget {
   LatLng? SOURCE_LOCATION;
   LatLng? DEST_LOCATION;
   bool live;
+  String? status1;
   String pick, dest;
   MapPage(this.status,
       {this.SOURCE_LOCATION,
       this.DEST_LOCATION,
+      this.status1,
       required this.live,
       this.pick = "",
       this.dest = ""});
@@ -42,7 +44,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   // which generates every polyline between start and finish
   PolylinePoints polylinePoints = PolylinePoints();
   //todo change google map api
-  String googleAPIKey = "AIzaSyBmUCtQ_DlYKSU_BV7JdiyoOu1i4ybe-z0";
+  String googleAPIKey = "AIzaSyDPsdTq-a4AHYHSNvQsdAlZgWvRu11T9pM";
   // for my custom icons
   BitmapDescriptor? sourceIcon;
   BitmapDescriptor? destinationIcon;
@@ -84,57 +86,69 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     if (widget.live) {
       lates.add(LatLng(driveLat, driveLng));
       lates.add(LatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude));
-      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-          googleAPIKey,
-          PointLatLng(driveLat, driveLng),
-          PointLatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude),
-          travelMode: TravelMode.driving,
-          optimizeWaypoints: true);
-      print("${result.points} >>>>>>>>>>>>>>>>..");
-      print("$SOURCE_LOCATION >>>>>>>>>>>>>>>>..");
-      print("$DEST_LOCATION >>>>>>>>>>>>>>>>..");
-      //polylineCoordinates.clear();
-      if (result.points.isNotEmpty) {
-        // loop through all PointLatLng points and convert them
-        // to a list of LatLng, required by the Polyline
-        result.points.forEach((PointLatLng point) {
-          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-        });
+      if (widget.status1 != null && widget.status1 == "1") {
+        PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+            googleAPIKey,
+            PointLatLng(driveLat, driveLng),
+            PointLatLng(SOURCE_LOCATION!.latitude, SOURCE_LOCATION!.longitude),
+            travelMode: TravelMode.driving,
+            optimizeWaypoints: true);
+        sourceIcon = await BitmapDescriptor.fromAssetImage(
+            ImageConfiguration(devicePixelRatio: 2.5),
+            'assets/driving_pin.png');
+
+        destinationIcon = await BitmapDescriptor.fromAssetImage(
+            ImageConfiguration(devicePixelRatio: 2.5),
+            'assets/destination_map_marker.png');
+        print("${result.points} >>>>>>>>>>>>>>>>..");
+        print("$SOURCE_LOCATION >>>>>>>>>>>>>>>>..");
+        print("$DEST_LOCATION >>>>>>>>>>>>>>>>..");
+        //polylineCoordinates.clear();
+        if (result.points.isNotEmpty) {
+          // loop through all PointLatLng points and convert them
+          // to a list of LatLng, required by the Polyline
+          result.points.forEach((PointLatLng point) {
+            polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+          });
+        } else {
+          print("Failed");
+        }
+        if (mounted)
+          setState(() {
+            // create a Polyline instance
+            // with an id, an RGB color and the list of LatLng pairs
+            Polyline polyline = Polyline(
+                width: 5,
+                polylineId: PolylineId("poly1"),
+                //  color: AppTheme.primaryColor,
+                color: Colors.black,
+                patterns: [
+                  PatternItem.dash(8),
+                  PatternItem.gap(3),
+                ],
+                points: polylineCoordinates);
+            // add the constructed polyline as a set of points
+            // to the polyline set, which will eventually
+            // end up showing up on the map
+            _polylines.add(polyline);
+          });
+        setMapPins();
       } else {
-        print("Failed");
+        setSourceAndDestinationIcons();
       }
-      setState(() {
-        // create a Polyline instance
-        // with an id, an RGB color and the list of LatLng pairs
-        Polyline polyline = Polyline(
-            width: 5,
-            polylineId: PolylineId("poly1"),
-            //  color: AppTheme.primaryColor,
-            color: Colors.black,
-            patterns: [
-              PatternItem.dash(8),
-              PatternItem.gap(3),
-            ],
-            points: polylineCoordinates);
-        // add the constructed polyline as a set of points
-        // to the polyline set, which will eventually
-        // end up showing up on the map
-        _polylines.add(polyline);
-      });
     }
-    setSourceAndDestinationIcons();
     updatePinOnMap();
   }
 
   void setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving_pin.png');
-/*    driverIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving.png');*/
+
     destinationIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5),
         'assets/destination_map_marker.png');
-
+/*    driverIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving.png');*/
     if (widget.status) {
       setState(() {
         SOURCE_LOCATION = widget.SOURCE_LOCATION;

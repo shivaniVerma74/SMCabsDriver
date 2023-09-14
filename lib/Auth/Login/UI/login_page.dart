@@ -37,10 +37,11 @@ class _LoginPageState extends State<LoginPage> implements LoginInteractor {
         longitude = result.first.coordinates.longitude;*/
       });
       location.getLoc();
-      Navigator.pushAndRemoveUntil(
+      Navigator.popAndPushNamed(context, "/");
+      /*Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => OfflinePage("")),
-          (route) => false);
+          (route) => false);*/
       return;
     }
     if (App.localStorage.getString("userProfileId") != null) {

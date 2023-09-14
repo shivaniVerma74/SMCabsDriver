@@ -5,9 +5,12 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:qcabs_driver/BookRide/complete_ride_dialog.dart';
 
 import 'package:qcabs_driver/Components/background_image.dart';
+import 'package:qcabs_driver/DrawerPages/Rides/intercity_rides.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
+import 'package:qcabs_driver/DrawerPages/Rides/rental_rides.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/ride_info_page.dart';
 import 'package:qcabs_driver/DrawerPages/Wallet/wallet_page.dart';
 import 'package:qcabs_driver/DrawerPages/notification_list.dart';
@@ -54,34 +57,41 @@ class _OfflinePageState extends State<OfflinePage> {
   int current = 1;
   var currentBookingStatus;
   bool condition = false;
+
   @override
   void initState() {
     /* Future.delayed(Duration(seconds: 5), () {
       Navigator.pushNamed(context, PageRoutes.rideBookedPage);
     });*/
     // TODO: implement initState
+    getLocation();
     super.initState();
     PushNotificationService notificationService = new PushNotificationService(
         context: context,
         onResult: (result) {
           print("boook" + result.toString());
+
           if (result != null) {
             if (result == "yes") {
               registerToken();
             } else {
-              getBookingInfo(result);
+              if (!result.toString().contains("null") &&
+                  isNumeric(result.toString())) {
+                getBookingInfo(result);
+              } else {
+                getBookInfo();
+              }
             }
+          } else {
+            getBookInfo();
           }
         });
     notificationService.initialise();
-    getTodayInfo();
-    getSetting();
-    getCount();
+    // getBookingInfo("182");
     getProfile();
     getStatus();
-    getLocation();
-    getProfile();
     getCurrentInfo();
+    getBookInfo();
     if (widget.bookingId != "") {
       getBookingInfo(widget.bookingId);
     }
@@ -142,12 +152,26 @@ class _OfflinePageState extends State<OfflinePage> {
   }
 
   MyRideModel? model;
+  bool isNumeric(String s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
+  }
 
   getBookingInfo(tempRefer) async {
     try {
+      if (bookModel != null && getDifference()) {
+        setSnackbar("you have a booking in an hour", context);
+        return;
+      }
       setState(() {
         saveStatus = false;
+        bookModel = null;
       });
+      if (!isNumeric(tempRefer.toString())) {
+        return;
+      }
       Map params = {
         "booking_id": tempRefer.toString(),
       };
@@ -161,7 +185,7 @@ class _OfflinePageState extends State<OfflinePage> {
       print("BOOKING STATUS === $currentBookingStatus");
       if (response['status']) {
         var v = response["data"];
-        if (mounted)
+        if (mounted && bookModel == null)
           setState(() {
             model = MyRideModel.fromJson(v);
           });
@@ -187,11 +211,45 @@ class _OfflinePageState extends State<OfflinePage> {
     }
   }
 
+  getBookInfo() async {
+    try {
+      setState(() {
+        saveStatus = false;
+        bookModel = null;
+      });
+      return;
+      Map params = {
+        "user_id": curUserId,
+      };
+      Map response = await apiBase.postAPICall(
+          Uri.parse(baseUrl1 + "payment/get_booking_details"), params);
+      setState(() {
+        saveStatus = true;
+      });
+      if (response['status'] && response["data"].length > 0) {
+        var v = response["data"][0];
+        setState(() {
+          bookModel = MyRideModel.fromJson(v);
+        });
+        //print(data);
+      } else {
+        // setSnackbar(response['message'], context);
+      }
+    } on TimeoutException catch (_) {
+      setSnackbar(getTranslated(context, "WRONG")!, context);
+      setState(() {
+        saveStatus = true;
+      });
+    }
+  }
+
+  MyRideModel? bookModel;
   MyRideModel? model1;
   getCurrentInfo() async {
     try {
       setState(() {
         saveStatus = false;
+        bookModel = null;
       });
       Map params = {
         "driver_id": curUserId,
@@ -208,8 +266,16 @@ class _OfflinePageState extends State<OfflinePage> {
         setState(() {
           model1 = MyRideModel.fromJson(v);
         });
-        Navigator.push(context,
+        var result = await Navigator.push(context,
             MaterialPageRoute(builder: (context) => RideInfoPage(model1!)));
+        if (result != null) {
+          /*showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => CompleteRideDialog(model1!));*/
+          getTodayInfo();
+          getBookInfo();
+        }
         /* showConfirm(RidesModel(v['id'], v['user_id'], v['username'], v['uneaque_id'], v['purpose'], v['pickup_area'],
             v['pickup_date'], v['drop_area'], v['pickup_time'], v['area'], v['landmark'], v['pickup_address'], v['drop_address'],
             v['taxi_type'], v['deparddddddture_time'], v['departure_date'], v['return_date'], v['flight_number'], v['package'],
@@ -218,6 +284,10 @@ class _OfflinePageState extends State<OfflinePage> {
             v['drop_latitude'], v['drop_longitude'], v['booking_type'], v['accept_reject'], v['created_date']));*/
         //print(data);
       } else {
+        getSetting();
+        getCount();
+        getTodayInfo();
+        getBookInfo();
         // setSnackbar(response['message'], context);
       }
     } on TimeoutException catch (_) {
@@ -447,7 +517,7 @@ class _OfflinePageState extends State<OfflinePage> {
         //    updateLocation();
       }
       if (latitude != result.first.coordinates.latitude) {}
-    });
+    }, status: true);
     location.getLoc();
   }
 
@@ -692,7 +762,7 @@ class _OfflinePageState extends State<OfflinePage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: false,
-        backgroundColor: Color(0xff2CC8DE),
+        backgroundColor: Color(0xff589605),
         title: Text(
           getTranslated(context, "TAKE_RIDE")!,
           style: TextStyle(
@@ -700,6 +770,19 @@ class _OfflinePageState extends State<OfflinePage> {
           ),
         ),
         actions: [
+          IconButton(
+              onPressed: () async {
+                getLocation();
+                getProfile();
+                getTodayInfo();
+                getSetting();
+                getCount();
+                getBookInfo();
+              },
+              icon: Icon(
+                Icons.refresh,
+                color: Colors.black,
+              )),
           Stack(
             alignment: Alignment.topRight,
             children: [
@@ -747,14 +830,17 @@ class _OfflinePageState extends State<OfflinePage> {
             getHeight(50),
           ),
           child: ListTile(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              var result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => MyRidesPage(
                           selected: true,
                         )),
               );
+              if (result != null) {
+                getBookInfo();
+              }
             },
             contentPadding: EdgeInsets.symmetric(horizontal: 10),
             leading: ClipRRect(
@@ -781,7 +867,19 @@ class _OfflinePageState extends State<OfflinePage> {
           ),
         ),
       ),
-      drawer: AppDrawer(),
+      drawer: AppDrawer(
+        onResult: (result) {
+          if (result != null) {
+            setState(() {
+              saveStatus = false;
+            });
+            getLocation();
+            getProfile();
+            getTodayInfo();
+            getBookInfo();
+          }
+        },
+      ),
       body: WillPopScope(
         onWillPop: onWill,
         child: SafeArea(
@@ -794,6 +892,82 @@ class _OfflinePageState extends State<OfflinePage> {
                       live: false,
                       SOURCE_LOCATION: LatLng(latitude, longitude),
                     ),
+                    bookModel != null
+                        ? Container(
+                            margin: EdgeInsets.all(8.0),
+                            padding: EdgeInsets.all(8.0),
+                            decoration: boxDecoration(
+                                showShadow: true, bgColor: Colors.white),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Text(
+                                  "You have an already ${bookModel!.bookingType!} ride",
+                                )),
+                                boxWidth(10),
+                                InkWell(
+                                  onTap: () async {
+                                    if (bookModel!.bookingType!
+                                        .toLowerCase()
+                                        .contains("schedule")) {
+                                      var result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => MyRidesPage(
+                                                    selected: false,
+                                                  )));
+                                      if (result != null) {
+                                        getBookInfo();
+                                      }
+                                    } else if (bookModel!.bookingType!
+                                        .toLowerCase()
+                                        .contains("intercity")) {
+                                      var result1 = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  IntercityRides(
+                                                    selected: false,
+                                                  )));
+                                      if (result1 != null) {
+                                        getBookInfo();
+                                      }
+                                    } else {
+                                      var result2 = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => RentalRides(
+                                                    selected: false,
+                                                  )));
+                                      if (result2 != null) {
+                                        getBookInfo();
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 30.w,
+                                    height: 5.h,
+                                    decoration: boxDecoration(
+                                        radius: 5,
+                                        bgColor:
+                                            Theme.of(context).primaryColor),
+                                    child: Center(
+                                        child: text(
+                                            getTranslated(context, "VIEW") !=
+                                                    null
+                                                ? getTranslated(
+                                                    context, "VIEW")!
+                                                : "View",
+                                            fontFamily: fontMedium,
+                                            fontSize: 10.sp,
+                                            isCentered: true,
+                                            textColor: Colors.white)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : SizedBox(),
                     model != null
                         ? Card(
                             margin: EdgeInsets.all(8.0),
@@ -1002,6 +1176,9 @@ class _OfflinePageState extends State<OfflinePage> {
                                                         "₹" +
                                                             (double.parse(model!
                                                                         .amount
+                                                                        .toString()) +
+                                                                    double.parse(model!
+                                                                        .promoDiscount
                                                                         .toString()) -
                                                                     double.parse(model!
                                                                         .gstAmount
@@ -1147,6 +1324,33 @@ class _OfflinePageState extends State<OfflinePage> {
                                                         "₹" +
                                                             model!.surgeAmount
                                                                 .toString(),
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                  ],
+                                                )
+                                              : SizedBox(),
+                                          double.parse(model!.promoDiscount
+                                                      .toString()) >
+                                                  0
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    text("Promo Discount : ",
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                    text(
+                                                        "-₹" +
+                                                            (double.parse(model!
+                                                                    .promoDiscount
+                                                                    .toString()))
+                                                                .toStringAsFixed(
+                                                                    2),
                                                         fontSize: 10.sp,
                                                         fontFamily: fontMedium,
                                                         textColor:
@@ -1304,12 +1508,12 @@ class _OfflinePageState extends State<OfflinePage> {
                         children: [
                           Container(
                             color:
-                                i == current ? Color(0xff2CC8DE) : Colors.white,
+                                i == current ? Color(0xff589605) : Colors.white,
                             padding: EdgeInsets.all(getWidth(5)),
                             child: Text(e,
                                 style: TextStyle(
                                   color: i != current
-                                      ? Color(0xff2CC8DE)
+                                      ? Color(0xff589605)
                                       : Colors.white,
                                   fontSize: 16.0,
                                 )),
@@ -1334,14 +1538,23 @@ class _OfflinePageState extends State<OfflinePage> {
                         horizontal: 8, vertical: getHeight(10)),
                     margin: EdgeInsets.symmetric(horizontal: 8),
                     child: walletAccount != "" &&
-                            double.parse(walletAccount) < 500
+                            double.parse(walletAccount) < minimumBal
                         ? InkWell(
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              var result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => WalletPage()),
                               );
+                              if (result != null) {
+                                setState(() {
+                                  saveStatus = false;
+                                });
+                                getLocation();
+                                getProfile();
+                                getTodayInfo();
+                                getBookInfo();
+                              }
                             },
                             child: Container(
                               margin: EdgeInsets.only(
@@ -1423,5 +1636,41 @@ class _OfflinePageState extends State<OfflinePage> {
         ),
       ),
     );
+  }
+
+  getDifference() {
+    String date = bookModel!.pickupDate.toString();
+    DateTime temp = DateTime.parse(date.replaceAll(" ", ""));
+    print(temp);
+    print(date);
+    if (temp.day == DateTime.now().day) {
+      String time = bookModel!.pickupTime.toString().split(" ")[0];
+      int i = 0;
+      if (bookModel!.pickupTime.toString().split(" ").length > 1 &&
+          bookModel!.pickupTime.toString().split(" ")[1].toLowerCase() ==
+              "pm") {
+        i = 12;
+      }
+      print(time);
+      if (time != "") {
+        DateTime temp = DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            int.parse(time.split(":")[0]) + i,
+            int.parse(time.split(":")[1]));
+        print("check" + temp.difference(DateTime.now()).inHours.toString());
+        print(temp);
+        print(DateTime.now());
+        print(temp.difference(DateTime.now()).inHours);
+        print(1 > temp.difference(DateTime.now()).inHours);
+        return 1 > temp.difference(DateTime.now()).inHours;
+      } else {
+        return true;
+      }
+    } else {
+      print(false);
+      return false;
+    }
   }
 }

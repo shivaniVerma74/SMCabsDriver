@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:qcabs_driver/BookRide/complete_ride_dialog.dart';
 import 'package:qcabs_driver/Components/row_item.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
@@ -45,7 +47,9 @@ class _RideInfoPageState extends State<RideInfoPage> {
   bool condition = false;
   Future<bool> onWill() async {
     DateTime now = DateTime.now();
-    if (widget.model.acceptReject != "1" ||
+    // widget.model.acceptReject != "1" ||
+    print(widget.model.bookingType.toString());
+    if (widget.model.acceptReject == "3" ||
         !widget.model.bookingType.toString().contains("Point")) {
       Navigator.pop(context);
     } else {
@@ -55,8 +59,9 @@ class _RideInfoPageState extends State<RideInfoPage> {
         Common().toast("Can't Exit");
         return Future.value(false);
       }
+      exit(1);
+      return Future.value();
     }
-    //  exit(1);
     return Future.value();
   }
 
@@ -77,6 +82,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
           "booking_id": bookingId,
           "otp": otpController.text.toString(),
         };
+
         print("COMPLETE RIDE === $data");
         // return;
         Map response = await apiBase.postAPICall(
@@ -90,10 +96,11 @@ class _RideInfoPageState extends State<RideInfoPage> {
         String msg = response['message'];
         setSnackbar(msg, context);
         if (response['status']) {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => OfflinePage("")),
-              (route) => false);
+          Navigator.pop(context, true);
+          showDialog(
+              context: context,
+              builder: (context) => CompleteRideDialog(widget.model));
+          // Navigator.pop(context);
         } else {}
       } on TimeoutException catch (_) {
         setSnackbar("Something Went Wrong", context);
@@ -127,7 +134,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
         bool status = true;
         String msg = response['message'];
         setSnackbar(msg, context);
-        Navigator.pop(context);
+        //Navigator.pop(context);
         if (response['status']) {
           setState(() {
             widget.model.acceptReject = "6";
@@ -142,6 +149,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
   }
 
   startRide(String bookingId, status1) async {
+    otpController.text = "";
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -209,9 +217,10 @@ class _RideInfoPageState extends State<RideInfoPage> {
                           ),
                           onPressed: () async {
                             if (otpController.text.isNotEmpty &&
-                                otpController.text.length == 6) {
+                                otpController.text.length >= 4) {
+                              Navigator.pop(context);
                               setState(() {
-                                acceptStatus = false;
+                                acceptStatus = true;
                               });
                               startRideOtp(bookingId, status1);
                             } else {
@@ -219,7 +228,6 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                 acceptStatus = false;
                               });
                               Fluttertoast.showToast(msg: "OTP is required");
-                              Navigator.pop(context);
                             }
                           },
                         ),
@@ -247,6 +255,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
   }
 
   completeRide(String bookingId, status1) async {
+    otpController.text = "";
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -314,7 +323,8 @@ class _RideInfoPageState extends State<RideInfoPage> {
                           ),
                           onPressed: () async {
                             if (otpController.text.isNotEmpty &&
-                                otpController.text.length == 6) {
+                                otpController.text.length >= 4) {
+                              Navigator.pop(context);
                               setState(() {
                                 acceptStatus = false;
                               });
@@ -375,10 +385,12 @@ class _RideInfoPageState extends State<RideInfoPage> {
         String msg = response['message'];
         setSnackbar(msg, context);
         if (response['status']) {
-          Navigator.pushAndRemoveUntil(
+          Navigator.pop(context);
+          Navigator.pop(context, true);
+          /* Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => OfflinePage("")),
-              (route) => false);
+              (route) => false);*/
         } else {}
       } on TimeoutException catch (_) {
         setSnackbar("Something Went Wrong", context);
@@ -437,8 +449,14 @@ class _RideInfoPageState extends State<RideInfoPage> {
               //if(mounted&&result=="yes")
               print("result" + result);
               if (result == "update") {
+                setState(() {
+                  saveStatus = false;
+                });
                 getCurrentInfo();
               } else if (result == "cancelled") {
+                setState(() {
+                  saveStatus = false;
+                });
                 getCurrentInfo();
               }
             });
@@ -459,23 +477,22 @@ class _RideInfoPageState extends State<RideInfoPage> {
   bool saveStatus = true;
   getCurrentInfo() async {
     try {
-      setState(() {
-        saveStatus = false;
-      });
       Map params = {
         "driver_id": curUserId,
       };
       print("GET DRIVER BOOKING RIDE ====== $params");
       Map response = await apiBase.postAPICall(
           Uri.parse(baseUrl1 + "Payment/get_driver_booking_ride"), params);
-      setState(() {
-        saveStatus = true;
-      });
+      if (mounted)
+        setState(() {
+          saveStatus = true;
+        });
       if (response['status']) {
         var v = response["data"][0];
-        setState(() {
-          widget.model = MyRideModel.fromJson(v);
-        });
+        if (mounted)
+          setState(() {
+            widget.model = MyRideModel.fromJson(v);
+          });
         /* showConfirm(RidesModel(v['id'], v['user_id'], v['username'], v['uneaque_id'], v['purpose'], v['pickup_area'],
             v['pickup_date'], v['drop_area'], v['pickup_time'], v['area'], v['landmark'], v['pickup_address'], v['drop_address'],
             v['taxi_type'], v['departure_time'], v['departure_date'], v['return_date'], v['flight_number'], v['package'],
@@ -485,11 +502,14 @@ class _RideInfoPageState extends State<RideInfoPage> {
 
         //print(data);
       } else {
-        setState(() {
-          condition = true;
-        });
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => OfflinePage("")));
+        if (mounted) {
+          setState(() {
+            condition = true;
+          });
+          Navigator.pop(context, true);
+        }
+        /*  Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => OfflinePage("")));*/
         setSnackbar("Ride is Canceller By user", context);
       }
     } on TimeoutException catch (_) {
@@ -625,25 +645,70 @@ class _RideInfoPageState extends State<RideInfoPage> {
                           ? Stack(
                               alignment: Alignment.bottomCenter,
                               children: [
-                                MapPage(
-                                  true,
-                                  pick: widget.model.pickupAddress.toString(),
-                                  dest: widget.model.dropAddress.toString(),
-                                  live: widget.model.acceptReject == "1" ||
-                                          widget.model.acceptReject == "6"
-                                      ? true
-                                      : false,
-                                  SOURCE_LOCATION: LatLng(
-                                      double.parse(
-                                          widget.model.latitude.toString()),
-                                      double.parse(
-                                          widget.model.longitude.toString())),
-                                  DEST_LOCATION: LatLng(
-                                      double.parse(
-                                          widget.model.dropLatitude.toString()),
-                                      double.parse(widget.model.dropLongitude
-                                          .toString())),
-                                ),
+                                !acceptStatus
+                                    ? MapPage(
+                                        true,
+                                        pick: widget.model.pickupAddress
+                                            .toString(),
+                                        dest:
+                                            widget.model.dropAddress.toString(),
+                                        status1: widget.model.acceptReject,
+                                        live: widget.model.acceptReject ==
+                                                    "1" ||
+                                                widget.model.acceptReject == "6"
+                                            ? true
+                                            : false,
+                                        SOURCE_LOCATION: LatLng(
+                                            double.parse(widget.model.latitude
+                                                .toString()),
+                                            double.parse(widget.model.longitude
+                                                .toString())),
+                                        DEST_LOCATION: LatLng(
+                                            double.parse(widget
+                                                .model.dropLatitude
+                                                .toString()),
+                                            double.parse(widget
+                                                .model.dropLongitude
+                                                .toString())),
+                                      )
+                                    : SizedBox(),
+                                widget.model.acceptReject != "3"
+                                    ? Align(
+                                        alignment: Alignment.topRight,
+                                        child: InkWell(
+                                          onTap: () {
+                                            if (widget.model.acceptReject ==
+                                                "6") {
+                                              String url =
+                                                  "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${widget.model.dropLatitude},${widget.model.dropLongitude}&travel_mode=driving&dir_action=navigate";
+                                              print(url);
+                                              launch(url);
+                                            } else {
+                                              String url =
+                                                  "https://www.google.com/maps/dir/?api=1&origin=${latitude.toString()},${longitude.toString()}&destination=${widget.model.latitude},${widget.model.longitude}&travel_mode=driving&dir_action=navigate";
+
+                                              print(url);
+                                              launch(url);
+                                            }
+                                          },
+                                          child: Container(
+                                            width: 40.w,
+                                            height: 5.h,
+                                            margin: EdgeInsets.all(getWidth(5)),
+                                            decoration: boxDecoration(
+                                                radius: 5,
+                                                bgColor: Theme.of(context)
+                                                    .primaryColor),
+                                            child: Center(
+                                                child: text("Track Location",
+                                                    fontFamily: fontMedium,
+                                                    fontSize: 10.sp,
+                                                    isCentered: true,
+                                                    textColor: Colors.white)),
+                                          ),
+                                        ),
+                                      )
+                                    : SizedBox(),
                                 widget.model.acceptReject == "1" ||
                                         widget.model.acceptReject == "6"
                                     ? Row(
@@ -668,49 +733,58 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                 children: [
                                                   Icon(
                                                     Icons.call,
-                                                    color: Colors.black,
+                                                    color: Colors.white,
                                                   ),
                                                   boxWidth(5),
                                                   text("Call",
                                                       fontFamily: fontMedium,
                                                       fontSize: 10.sp,
                                                       isCentered: true,
-                                                      textColor: Colors.black),
+                                                      textColor: Colors.white),
                                                 ],
                                               )),
                                             ),
                                           ),
                                           boxWidth(10),
-                                          InkWell(
-                                            onTap: () {
-                                              showBottom1();
-                                            },
-                                            child: Container(
-                                              width: 28.w,
-                                              height: 5.h,
-                                              decoration: boxDecoration(
-                                                  radius: 5,
-                                                  bgColor: Theme.of(context)
-                                                      .primaryColor),
-                                              child: Center(
-                                                  child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(
-                                                    Icons.close,
-                                                    color: Colors.black,
+                                          widget.model.acceptReject == "1"
+                                              ? InkWell(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      showMore = false;
+                                                    });
+                                                    showBottom1();
+                                                  },
+                                                  child: Container(
+                                                    width: 28.w,
+                                                    height: 5.h,
+                                                    decoration: boxDecoration(
+                                                        radius: 5,
+                                                        bgColor:
+                                                            Theme.of(context)
+                                                                .primaryColor),
+                                                    child: Center(
+                                                        child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.close,
+                                                          color: Colors.white,
+                                                        ),
+                                                        boxWidth(5),
+                                                        text("Cancel",
+                                                            fontFamily:
+                                                                fontMedium,
+                                                            fontSize: 10.sp,
+                                                            isCentered: true,
+                                                            textColor:
+                                                                Colors.white),
+                                                      ],
+                                                    )),
                                                   ),
-                                                  boxWidth(5),
-                                                  text("Cancel",
-                                                      fontFamily: fontMedium,
-                                                      fontSize: 10.sp,
-                                                      isCentered: true,
-                                                      textColor: Colors.black),
-                                                ],
-                                              )),
-                                            ),
-                                          ),
+                                                )
+                                              : SizedBox(),
                                           boxWidth(10),
                                           !widget.model.bookingType!
                                                   .contains("Point")
@@ -754,7 +828,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                             Icon(
                                                               Icons.check,
                                                               color:
-                                                                  Colors.black,
+                                                                  Colors.white,
                                                             ),
                                                             boxWidth(5),
                                                             text(
@@ -769,7 +843,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                                     true,
                                                                 textColor:
                                                                     Colors
-                                                                        .black),
+                                                                        .white),
                                                           ],
                                                         )),
                                                       )
@@ -817,7 +891,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                               Icon(
                                                                 Icons.check,
                                                                 color: Colors
-                                                                    .black,
+                                                                    .white,
                                                               ),
                                                               boxWidth(5),
                                                               text(
@@ -833,7 +907,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                                       true,
                                                                   textColor:
                                                                       Colors
-                                                                          .black),
+                                                                          .white),
                                                             ],
                                                           )),
                                                         )
@@ -1039,42 +1113,6 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                       padding: EdgeInsets.all(getWidth(15)),
                                       child: Column(
                                         children: [
-                                          double.parse(widget.model.gstAmount
-                                                      .toString()) >
-                                                  0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Sub Total : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            (double.parse(widget
-                                                                        .model
-                                                                        .amount
-                                                                        .toString()) -
-                                                                    double.parse(widget
-                                                                        .model
-                                                                        .gstAmount
-                                                                        .toString()) -
-                                                                    double.parse(widget
-                                                                        .model
-                                                                        .surgeAmount
-                                                                        .toString()))
-                                                                .toStringAsFixed(
-                                                                    2),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
                                           double.parse(widget.model.baseFare
                                                       .toString()) >
                                                   0
@@ -1102,7 +1140,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                               : SizedBox(),
                                           double.parse(widget.model.km
                                                           .toString()) >=
-                                                      2 &&
+                                                      1 &&
                                                   double.parse(widget
                                                           .model.ratePerKm
                                                           .toString()) >
@@ -1206,6 +1244,74 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                   ],
                                                 )
                                               : SizedBox(),
+                                          double.parse(widget.model.amount
+                                                      .toString()) >
+                                                  0
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    text("Sub Total : ",
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                    text(
+                                                        "₹" +
+                                                            (double.parse(widget
+                                                                        .model
+                                                                        .amount
+                                                                        .toString()) +
+                                                                    double.parse(widget
+                                                                        .model
+                                                                        .promoDiscount
+                                                                        .toString()))
+                                                                .toStringAsFixed(
+                                                                    2),
+                                                        fontSize: 10.sp,
+                                                        fontFamily: fontMedium,
+                                                        textColor:
+                                                            Colors.black),
+                                                  ],
+                                                )
+                                              : SizedBox(),
+                                          widget.model.promoDiscount
+                                                          .toString() ==
+                                                      null ||
+                                                  widget.model.promoDiscount
+                                                          .toString() ==
+                                                      ''
+                                              ? SizedBox.shrink()
+                                              : double.parse(widget
+                                                          .model.promoDiscount
+                                                          .toString()) >
+                                                      0
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        text(
+                                                            "Promo Discount : ",
+                                                            fontSize: 10.sp,
+                                                            fontFamily:
+                                                                fontRegular,
+                                                            textColor:
+                                                                Colors.black),
+                                                        text(
+                                                            "-₹" +
+                                                                widget.model
+                                                                    .promoDiscount
+                                                                    .toString(),
+                                                            fontSize: 10.sp,
+                                                            fontFamily:
+                                                                fontRegular,
+                                                            textColor:
+                                                                Colors.black),
+                                                      ],
+                                                    )
+                                                  : SizedBox(),
                                           Divider(),
                                           Row(
                                             mainAxisAlignment:
@@ -1436,7 +1542,7 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                   ),
                                   SizedBox(height: 12),
                                   Container(
-                                    padding: EdgeInsets.all(16),
+                                    padding: EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                         color: theme.backgroundColor,
                                         borderRadius: BorderRadius.vertical(
@@ -1448,6 +1554,9 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                 context, "PAYMENT_VIA"),
                                             '${widget.model.transaction}',
                                             Icons.account_balance_wallet),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
                                         // Spacer(),
                                         RowItem(
                                             getTranslated(context, "RIDE_FARE"),
@@ -1465,40 +1574,6 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                     padding: EdgeInsets.all(getWidth(15)),
                                     child: Column(
                                       children: [
-                                        double.parse(widget.model.gstAmount
-                                                    .toString()) >
-                                                0
-                                            ? Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  text("Sub Total : ",
-                                                      fontSize: 10.sp,
-                                                      fontFamily: fontMedium,
-                                                      textColor: Colors.black),
-                                                  text(
-                                                      "₹" +
-                                                          (double.parse(widget
-                                                                      .model
-                                                                      .amount
-                                                                      .toString()) -
-                                                                  double.parse(widget
-                                                                      .model
-                                                                      .gstAmount
-                                                                      .toString()) -
-                                                                  double.parse(widget
-                                                                      .model
-                                                                      .surgeAmount
-                                                                      .toString()))
-                                                              .toStringAsFixed(
-                                                                  2),
-                                                      fontSize: 10.sp,
-                                                      fontFamily: fontMedium,
-                                                      textColor: Colors.black),
-                                                ],
-                                              )
-                                            : SizedBox(),
                                         double.parse(widget.model.baseFare
                                                     .toString()) >
                                                 0
@@ -1554,40 +1629,6 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                   )
                                                 : SizedBox()
                                             : SizedBox.shrink(),
-                                        widget.model.promoDiscount.toString() ==
-                                                    null ||
-                                                widget.model.promoDiscount
-                                                        .toString() ==
-                                                    ''
-                                            ? SizedBox.shrink()
-                                            : double.parse(widget
-                                                        .model.promoDiscount
-                                                        .toString()) >
-                                                    0
-                                                ? Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      text("Promo Discount : ",
-                                                          fontSize: 10.sp,
-                                                          fontFamily:
-                                                              fontRegular,
-                                                          textColor:
-                                                              Colors.black),
-                                                      text(
-                                                          "-₹" +
-                                                              widget.model
-                                                                  .promoDiscount
-                                                                  .toString(),
-                                                          fontSize: 10.sp,
-                                                          fontFamily:
-                                                              fontRegular,
-                                                          textColor:
-                                                              Colors.black),
-                                                    ],
-                                                  )
-                                                : SizedBox(),
                                         double.parse(widget.model.timeAmount
                                                     .toString()) >
                                                 0
@@ -1657,6 +1698,70 @@ class _RideInfoPageState extends State<RideInfoPage> {
                                                 ],
                                               )
                                             : SizedBox(),
+                                        double.parse(widget.model.amount
+                                                    .toString()) >
+                                                0
+                                            ? Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  text("Sub Total : ",
+                                                      fontSize: 10.sp,
+                                                      fontFamily: fontMedium,
+                                                      textColor: Colors.black),
+                                                  text(
+                                                      "₹" +
+                                                          (double.parse(widget
+                                                                      .model
+                                                                      .amount
+                                                                      .toString()) +
+                                                                  double.parse(widget
+                                                                      .model
+                                                                      .promoDiscount
+                                                                      .toString()))
+                                                              .toStringAsFixed(
+                                                                  2),
+                                                      fontSize: 10.sp,
+                                                      fontFamily: fontMedium,
+                                                      textColor: Colors.black),
+                                                ],
+                                              )
+                                            : SizedBox(),
+                                        widget.model.promoDiscount.toString() ==
+                                                    null ||
+                                                widget.model.promoDiscount
+                                                        .toString() ==
+                                                    ''
+                                            ? SizedBox.shrink()
+                                            : double.parse(widget
+                                                        .model.promoDiscount
+                                                        .toString()) >
+                                                    0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Promo Discount : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily:
+                                                              fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "-₹" +
+                                                              widget.model
+                                                                  .promoDiscount
+                                                                  .toString(),
+                                                          fontSize: 10.sp,
+                                                          fontFamily:
+                                                              fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
                                         Divider(),
                                         Row(
                                           mainAxisAlignment:
@@ -1722,17 +1827,22 @@ class _RideInfoPageState extends State<RideInfoPage> {
               "pm") {
         i = 12;
       }
-      DateTime temp = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-          int.parse(time.split(":")[0]) + i,
-          int.parse(time.split(":")[1]));
-      print("check" + temp.difference(DateTime.now()).inMinutes.toString());
-      print(temp);
-      print(DateTime.now());
-      print(1 > temp.difference(DateTime.now()).inMinutes);
-      return 1 > temp.difference(DateTime.now()).inMinutes;
+      print(time);
+      if (time != "") {
+        DateTime temp = DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            int.parse(time.split(":")[0]) + i,
+            int.parse(time.split(":")[1]));
+        print("check" + temp.difference(DateTime.now()).inMinutes.toString());
+        print(temp);
+        print(DateTime.now());
+        print(1 > temp.difference(DateTime.now()).inMinutes);
+        return 1 > temp.difference(DateTime.now()).inMinutes;
+      } else {
+        return true;
+      }
     } else {
       print(false);
       return false;

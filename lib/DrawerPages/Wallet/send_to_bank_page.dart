@@ -15,23 +15,19 @@ import 'package:sizer/sizer.dart';
 import '../app_drawer.dart';
 
 class SendToBankPage extends StatefulWidget {
-  String total,min;
+  String total, min;
 
-  SendToBankPage(this.total,this.min);
+  SendToBankPage(this.total, this.min);
 
   @override
   _SendToBankPageState createState() => _SendToBankPageState();
 }
 
 class _SendToBankPageState extends State<SendToBankPage> {
-  TextEditingController _bankNameController =
-      TextEditingController();
-  TextEditingController _accountNumberController =
-      TextEditingController();
-  TextEditingController _bankCodeController =
-      TextEditingController();
-  TextEditingController _amountController =
-      TextEditingController();
+  TextEditingController _bankNameController = TextEditingController();
+  TextEditingController _accountNumberController = TextEditingController();
+  TextEditingController _bankCodeController = TextEditingController();
+  TextEditingController _amountController = TextEditingController();
   ApiBaseHelper apiBase = new ApiBaseHelper();
   double totalBal = 0;
   double minimumBal = 0;
@@ -68,6 +64,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
       });
     }
   }
+
   getBank() async {
     try {
       setState(() {
@@ -88,7 +85,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
         _bankNameController.text = v['bank_name'];
         _accountNumberController.text = v['account_number'];
         _bankCodeController.text = v['bank_code'];
-       // addWithdraw();
+        // addWithdraw();
       } else {
         setSnackbar(response['message'], context);
       }
@@ -99,6 +96,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
       });
     }
   }
+
   addWithdraw() async {
     try {
       setState(() {
@@ -136,6 +134,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
     _bankCodeController.text = code;
     //getBank();
   }
+
   @override
   void dispose() {
     _bankNameController.dispose();
@@ -149,7 +148,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
-      drawer: AppDrawer(false),
+      //  drawer: AppDrawer(false),
       body: FadedSlideAnimation(
         Stack(
           alignment: Alignment.bottomCenter,
@@ -162,9 +161,10 @@ class _SendToBankPageState extends State<SendToBankPage> {
                   children: [
                     AppBar(),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: Text(
-                        getTranslated(context,"AVAILABLE_AMOUNT")!,
+                        getTranslated(context, "AVAILABLE_AMOUNT")!,
                         style: theme.textTheme.bodyText2!
                             .copyWith(color: theme.hintColor),
                       ),
@@ -182,34 +182,44 @@ class _SendToBankPageState extends State<SendToBankPage> {
                       child: Column(
                         // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          SizedBox(height: 12,),
+                          SizedBox(
+                            height: 12,
+                          ),
                           Container(
                             width: getWidth(330),
-                            child: text("Note-You should have at least \u{20B9}${widget.min} to get booking request.",
+                            child: text(
+                                "Note-You should have at least \u{20B9}${widget.min} to get booking request.",
                                 fontSize: 10.sp,
                                 fontFamily: fontMedium,
-                                textColor: Colors.red
-                            ),
+                                textColor: Colors.red),
                           ),
-                          SizedBox(height: 12,),
+                          SizedBox(
+                            height: 12,
+                          ),
                           EntryField(
                             readOnly: true,
                             controller: _bankNameController,
-                            label: getTranslated(context,"BANK_NAME"),
+                            label: getTranslated(context, "BANK_NAME"),
                           ),
-                          SizedBox(height: 12,),
+                          SizedBox(
+                            height: 12,
+                          ),
                           EntryField(
                             readOnly: true,
                             controller: _accountNumberController,
-                            label: getTranslated(context,"ACC_NUM"),
+                            label: getTranslated(context, "ACC_NUM"),
                           ),
-                          SizedBox(height: 12,),
+                          SizedBox(
+                            height: 12,
+                          ),
                           EntryField(
                             readOnly: true,
                             controller: _bankCodeController,
-                            label: getTranslated(context,Strings.BANK_CODE),
+                            label: getTranslated(context, Strings.BANK_CODE),
                           ),
-                          SizedBox(height: 12,),
+                          SizedBox(
+                            height: 12,
+                          ),
                         ],
                       ),
                     ),
@@ -220,7 +230,8 @@ class _SendToBankPageState extends State<SendToBankPage> {
                         child: EntryField(
                           controller: _amountController,
                           keyboardType: TextInputType.number,
-                          label: getTranslated(context,Strings.ENTER_AMOUNT_TO_TRANSFER),
+                          label: getTranslated(
+                              context, Strings.ENTER_AMOUNT_TO_TRANSFER),
                         ),
                       ),
                     ),
@@ -231,32 +242,41 @@ class _SendToBankPageState extends State<SendToBankPage> {
             PositionedDirectional(
               start: 0,
               end: 0,
-              child: !saveStatus?CustomButton(
-                text: getTranslated(context,"SUBMIT"),
-                onTap: (){
-                      if(_bankNameController.text==""){
-                        setSnackbar("Please Enter Bank Name", context);
-                        return;
-                      }
-                      if(_accountNumberController.text==""||_accountNumberController.text.length<10){
-                        setSnackbar("Please Enter Account Number", context);
-                        return;
-                      }
-                      if(_bankCodeController.text==""||_bankCodeController.text.length!=11){
-                        setSnackbar("Please Enter Bank Code", context);
-                        return;
-                      }
-                      if(_amountController.text==""){
-                        setSnackbar("Please Enter Amount", context);
-                      }
-                      if(double.parse(_amountController.text)>(double.parse(widget.total)-double.parse(widget.min))){
-                        setSnackbar("You can withdraw only ₹${(double.parse(widget.total)-double.parse(widget.min))}", context);
-                        return;
-                      }
-                  //    addWithdraw();
-
-                },
-              ):Center(child: CircularProgressIndicator(),),
+              child: !saveStatus
+                  ? CustomButton(
+                      text: getTranslated(context, "SUBMIT"),
+                      onTap: () {
+                        if (_bankNameController.text == "") {
+                          setSnackbar("Please Enter Bank Name", context);
+                          return;
+                        }
+                        if (_accountNumberController.text == "" ||
+                            _accountNumberController.text.length < 10) {
+                          setSnackbar("Please Enter Account Number", context);
+                          return;
+                        }
+                        if (_bankCodeController.text == "" ||
+                            _bankCodeController.text.length != 11) {
+                          setSnackbar("Please Enter IFSC Code", context);
+                          return;
+                        }
+                        if (_amountController.text == "") {
+                          setSnackbar("Please Enter Amount", context);
+                        }
+                        if (double.parse(_amountController.text) >
+                            (double.parse(widget.total) -
+                                double.parse(widget.min))) {
+                          setSnackbar(
+                              "You can withdraw only ₹${(double.parse(widget.total) - double.parse(widget.min))}",
+                              context);
+                          return;
+                        }
+                        addWithdraw();
+                      },
+                    )
+                  : Center(
+                      child: CircularProgressIndicator(),
+                    ),
             ),
           ],
         ),

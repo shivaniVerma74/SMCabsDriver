@@ -12,6 +12,7 @@ import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/Locale/locale.dart';
 import 'package:qcabs_driver/Model/cab_model.dart';
+import 'package:qcabs_driver/Model/user_model.dart';
 import 'package:qcabs_driver/utils/ApiBaseHelper.dart';
 import 'package:qcabs_driver/utils/Session.dart';
 import 'package:qcabs_driver/utils/colors.dart';
@@ -39,11 +40,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
   TextEditingController genderCon = new TextEditingController();
   TextEditingController dobCon = new TextEditingController();
   TextEditingController modelCon = new TextEditingController();
+  TextEditingController vehicleCon = new TextEditingController();
+  TextEditingController carCon = new TextEditingController();
+
   TextEditingController bankCon = new TextEditingController();
   TextEditingController accountCon = new TextEditingController();
   TextEditingController codeCon = new TextEditingController();
   List<String> gender = ["Male", "Female", "Other"];
-  bool saveStatus = true;
+  bool saveStatus = true, update = false;
+  String msg = "";
+  UserModel? model;
   @override
   void initState() {
     super.initState();
@@ -67,6 +73,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
       });
       if (response['status']) {
         var data = response["data"];
+        model = UserModel.fromJson(data);
+        msg = response["notification"] != null ? response["notification"] : "";
         print(data);
         name = data['user_name'];
         mobile = data['phone'];
@@ -101,6 +109,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
         reject = data['reject'];
         print("dta" + data['profile_status']);
         nameCon.text = name;
+        mobileCon.text = mobile;
         emailCon.text = email;
         vehicleCon.text = number;
         carCon.text = brand;
@@ -113,7 +122,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
         modelId = model2;
         refer = data['referral_code'];
       } else {
-       // setSnackbar(response['message'], context);
+        // setSnackbar(response['message'], context);
       }
     } on TimeoutException catch (_) {
       setSnackbar("Something Went Wrong", context);
@@ -131,11 +140,12 @@ class _MyProfilePageState extends State<MyProfilePage> {
         context: context,
         initialDate: startDate,
         firstDate: DateTime(1900),
-        lastDate: DateTime(2023));
+        lastDate: DateTime.now());
     if (picked != null) {
       setState(() {
         startDate = picked;
         dobCon.text = DateFormat("yyyy-MM-dd").format(startDate);
+        checkChange(model!.dob!, dobCon.text, 4);
       });
     }
   }
@@ -175,6 +185,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           genderCon.text = gender[index];
                         });
                         Navigator.pop(context);
+                        checkChange(model!.gender!, genderCon.text, 3);
                       },
                       child: Container(
                         color: genderCon.text == gender[index]
@@ -194,6 +205,26 @@ class _MyProfilePageState extends State<MyProfilePage> {
         ),
       );
     });
+  }
+
+  int checkField = 0;
+  checkChange(String first, second, int number) {
+    if (first.toLowerCase() != second.toLowerCase()) {
+      print("okay");
+      if (!update)
+        setState(() {
+          update = true;
+          checkField = number;
+        });
+    } else {
+      print("no");
+      if (checkField == number) {
+        setState(() {
+          update = false;
+          checkField = 0;
+        });
+      }
+    }
   }
 
   @override
@@ -284,17 +315,28 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         children: [
                           EntryField(
                             label: getTranslated(context, "ENTER_PHONE")!,
-                            initialValue: mobile,
-                            readOnly: true,
+                            controller: mobileCon,
+                            onChanged: (val) {
+                              checkChange(model!.phone!, val, 9);
+                            },
+                            //initialValue: mobile,
+                            //readOnly: true,
                           ),
                           EntryField(
                             label: getTranslated(context, Strings.FULL_NAME),
                             controller: nameCon,
+                            onChanged: (val) {
+                              checkChange(model!.userName!, val, 1);
+                            },
                             keyboardType: TextInputType.name,
                           ),
                           EntryField(
-                            label: getTranslated(context, Strings.EMAIL_ADD),
+                            label:
+                                "${getTranslated(context, Strings.EMAIL_ADD)} (optional)",
                             controller: emailCon,
+                            onChanged: (val) {
+                              checkChange(model!.email!, val, 2);
+                            },
                             keyboardType: TextInputType.emailAddress,
                           ),
                           gender.length > 0
@@ -334,7 +376,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             controller: carCon,
                             //initialValue: brand,
                             onTap: () {
-                              ///  showBottom();
+                              showBottom();
                             },
                             label: getTranslated(context, Strings.CAR_BRAND),
                             hint: getTranslated(
@@ -359,6 +401,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           EntryField(
                             //    initialValue: number,
                             controller: vehicleCon,
+                            onChanged: (val) {
+                              checkChange(model!.carNo!, val, 5);
+                            },
                             label: getTranslated(context, Strings.VEHICLE_NUM),
                             hint: getTranslated(
                                 context, Strings.ENTER_VEHICLE_NUM),
@@ -375,6 +420,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             maxLength: 16,
                             keyboardType: TextInputType.phone,
                             controller: accountCon,
+                            onChanged: (val) {
+                              checkChange(model!.accountNumber!, val, 6);
+                            },
                             label: getTranslated(context, "Accountnumber")!,
                             hint: "",
                           ),
@@ -382,12 +430,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             keyboardType: TextInputType.text,
                             controller: bankCon,
                             label: getTranslated(context, "BANK_NAME")!,
+                            onChanged: (val) {
+                              checkChange(model!.bankName!, val, 7);
+                            },
                             hint: "",
                           ),
                           EntryField(
                             maxLength: 11,
                             keyboardType: TextInputType.text,
                             controller: codeCon,
+                            onChanged: (val) {
+                              checkChange(model!.ifscCode!, val, 8);
+                            },
                             label: getTranslated(context, "BANK_CODE")!,
                             hint: "",
                           ),
@@ -687,7 +741,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       textColor: profileStatus == "0"
                           ? Colors.yellow
                           : profileStatus == "1"
-                              ? Colors.green
+                              ? Colors.white
                               : Colors.red,
                       text: profileStatus == "0"
                           ? getTranslated(context, "WAIT")!
@@ -697,19 +751,42 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       onTap: () {},
                     ),
                   ),
+                  profileStatus != "0" && profileStatus != "1"
+                      ? Container(
+                          width: getWidth(375),
+                          color: Colors.white,
+                          padding: EdgeInsets.all(5),
+                          child: Text(
+                            msg,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.red),
+                          ))
+                      : SizedBox(),
                   Container(
                     height: 60,
+                    width: double.infinity,
+                    color: Colors.white,
                     child: CustomButton(
                       text: getTranslated(context, "Updateprofile")!,
+                      color: update
+                          ? Theme.of(context).primaryColor
+                          : Colors.grey.withOpacity(0.7),
                       onTap: profileStatus == "0"
                           ? () {
                               setSnackbar("Please Wait For Review", context);
                             }
                           : () {
-                              /* if(mobileCon.text==""||mobileCon.text.length!=10){
-                    setSnackbar("Please Enter Valid Mobile Number", context);
-                    return ;
-                  }*/
+                              if (mobileCon.text == "" ||
+                                  mobileCon.text.length != 10) {
+                                setSnackbar("Please Enter Valid Mobile Number",
+                                    context);
+                                return;
+                              }
+                              if (!update) {
+                                setSnackbar(
+                                    "Please Change Some Thing", context);
+                                return;
+                              }
                               if (validateField(
                                       nameCon.text, "Please Enter Full Name") !=
                                   null) {
@@ -891,7 +968,14 @@ class _MyProfilePageState extends State<MyProfilePage> {
           if (data['status']) {
             Map info = data['data'];
             setSnackbar(data['message'].toString(), context);
-            if (isActive == "1" && reject == "1") {
+            await App.init();
+            App.localStorage.clear();
+            //Common().toast("Logout");
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+                (route) => false);
+            /*if (isActive == "1" && reject == "1") {
               await App.init();
               App.localStorage.clear();
               //Common().toast("Logout");
@@ -904,7 +988,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   context,
                   MaterialPageRoute(builder: (context) => OfflinePage("")),
                   (route) => false);
-            }
+            }*/
           } else {
             setSnackbar(data['message'].toString(), context);
           }
@@ -1101,6 +1185,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           minimumAspectRatio: 1.0,
         ));
     setState(() {
+      update = true;
       if (i == 1) {
         _image = File(croppedFile!.path);
       } else if (i == 2) {
@@ -1127,8 +1212,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   TextEditingController referCon = new TextEditingController();
   TextEditingController emailCon = new TextEditingController();
   TextEditingController nameCon = new TextEditingController();
-  TextEditingController vehicleCon = new TextEditingController();
-  TextEditingController carCon = new TextEditingController();
+
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
   bool loading = false;

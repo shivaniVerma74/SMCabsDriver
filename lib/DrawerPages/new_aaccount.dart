@@ -6,6 +6,7 @@ import 'package:qcabs_driver/DrawerPages/Rides/ride_info_page.dart';
 import 'package:qcabs_driver/Locale/strings_enum.dart';
 import 'package:qcabs_driver/Model/my_ride_model.dart';
 import 'package:qcabs_driver/Model/rides_model.dart';
+import 'package:qcabs_driver/Model/settlement_model.dart';
 import 'package:qcabs_driver/Model/wallet_model.dart';
 import 'package:qcabs_driver/Routes/page_routes.dart';
 import 'package:qcabs_driver/Locale/locale.dart';
@@ -155,6 +156,7 @@ class _AccountPageState extends State<AccountPage>
           Uri.parse(baseUrl1 + "payment/weekly_pay_out_driver"), params);
       setState(() {
         loading = false;
+        walletList.clear();
       });
       if (response['status']) {
         print(response['data']);
@@ -177,13 +179,47 @@ class _AccountPageState extends State<AccountPage>
     }
   }
 
+  getWeeklyHistory(String type) async {
+    try {
+      setState(() {
+        loading = true;
+        settleList.clear();
+      });
+      Map params = {"driver_id": curUserId, "type": type};
+      Map response = await apiBase.postAPICall(
+          Uri.parse(baseUrl1 + "payment/all_amount_pending_driver"), params);
+      setState(() {
+        loading = false;
+      });
+      if (response['status']) {
+        print(response['data']);
+        if (response['data'] is Map) {
+          setState(() {
+            settleList.add(new SettlementModel.fromJson(response['data']));
+          });
+        } else {
+          for (var v in response['data']) {
+            setState(() {
+              settleList.add(new SettlementModel.fromJson(v));
+            });
+          }
+        }
+      } else {
+        setSnackbar(response['message'], context);
+      }
+    } on TimeoutException catch (_) {
+      setSnackbar("Something Went Wrong", context);
+    }
+  }
+
   List<WalletModel> walletList = [];
+  List<SettlementModel> settleList = [];
   bool saveStatus = true;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    tabController = new TabController(length: 4, vsync: this);
+    tabController = new TabController(length: 5, vsync: this);
     tabController!.addListener(() {
       if (tabController!.index == 1) {
         getEarning("Payment/get_account_summary_by_online", selectedFil);
@@ -191,711 +227,308 @@ class _AccountPageState extends State<AccountPage>
       if (tabController!.index == 0) {
         getEarning("Payment/get_account_summary_by_cash", selectedFil);
       }
+      if (tabController!.index == 2) {
+        getPayout();
+      }
+      if (tabController!.index == 3) {
+        getHistory();
+      }
+      if (tabController!.index == 4) {
+        getWeeklyHistory("pending");
+      }
     });
     getHistory();
     getEarning("Payment/get_account_summary_by_cash", "today");
     getPayout();
+    getWeeklyHistory("pending");
   }
 
   bool selected = false;
   List<String> filter = ["Today", "Weekly", "Monthly"];
   String selectedFil = "Today";
+  Future<bool> onWill() {
+    Navigator.pop(context, true);
+    /* Navigator.popUntil(
+      context,
+      ModalRoute.withName('/'),
+    );*/
+    /*Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => SearchLocationPage()),
+        (route) => false);*/
+
+    return Future.value();
+  }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        title: Text(
-          getTranslated(context, "Myearning")!,
-          style: theme.textTheme.headline4,
-        ),
-        bottom: TabBar(
-          controller: tabController,
-          isScrollable: true,
-          padding: EdgeInsets.all(5),
-          indicator: BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+    return WillPopScope(
+      onWillPop: onWill,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: AppTheme.primaryColor,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            ),
+          ),
+          title: Text(
+            getTranslated(context, "Myearning")!,
+            style: theme.textTheme.headline4,
+          ),
+          bottom: TabBar(
+            controller: tabController,
+            isScrollable: true,
+            padding: EdgeInsets.all(5),
+            indicator: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+                color: Colors.white),
+            tabs: [
+              Tab(
+                text: getTranslated(context, "Cashearning")!,
               ),
-              color: Colors.white),
-          tabs: [
-            Tab(
-              text: getTranslated(context, "Cashearning")!,
-            ),
-            Tab(
-              text: getTranslated(context, "Onlinepayment")!,
-            ),
-            Tab(
-              text: getTranslated(context, "Weeklypayout")!,
-            ),
-            Tab(
-              text: getTranslated(context, "HISTORY")!,
-            ),
-          ],
+              Tab(
+                text: getTranslated(context, "Onlinepayment")!,
+              ),
+              Tab(
+                text: getTranslated(context, "Weeklypayout")!,
+              ),
+              // Tab(
+              //   text: getTranslated(context, "HISTORY")!,
+              // ),
+              // Tab(
+              //   text: "Settlement",
+              // ),
+            ],
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: tabController,
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                /*Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  "My Earning",
-                  style: theme.textTheme.headline4,
-                ),
-              ),*/
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "${getTranslated(context, "Totalearning")} - \u{20B9}$balance",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "${getTranslated(context, "CASH_EARNING")} - \u{20B9}$total",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: selected
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "${getTranslated(context, "Admincommission")} - \u{20B9}$commission",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      selected
-                          ? Text(
-                              "${getTranslated(context, "Weeklypayout")} - \u{20B9}$payout",
-                              style: theme.textTheme.bodySmall!.copyWith(
-                                  color: theme.hintColor,
-                                  fontWeight: FontWeight.bold),
-                            )
-                          : SizedBox(),
-                    ],
-                  ),
-                ),
-                selected
-                    ? Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${getTranslated(context, "Joining")} - \u{20B9}$earning",
-                              style: theme.textTheme.bodySmall!.copyWith(
-                                  color: theme.hintColor,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      )
-                    : SizedBox(),
-                boxHeight(19),
-                Wrap(
-                  spacing: 3.w,
-                  children: filter.map((e) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedFil = e.toString();
-                        });
-                        getEarning(
-                            "Payment/get_account_summary_by_cash", selectedFil);
-                      },
-                      child: Chip(
-                        side: BorderSide(color: MyColorName.primaryLite),
-                        backgroundColor: selectedFil == e
-                            ? MyColorName.primaryLite
-                            : Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        label: text(e,
-                            fontFamily: fontMedium,
-                            fontSize: 10.sp,
-                            textColor:
-                                selected == e ? Colors.white : Colors.black),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                boxHeight(19),
-                !loading
-                    ? rideList.length > 0
-                        ? ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: rideList.length,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) => rideList[index]
-                                    .show!
-                                ? GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  RideInfoPage(
-                                                    rideList[index],
-                                                    check: "yes",
-                                                  )));
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.all(getWidth(10)),
-                                      decoration: boxDecoration(
-                                          radius: 10,
-                                          bgColor: Colors.white,
-                                          showShadow: true),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            height: 80,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 12, horizontal: 16),
-                                            child: Row(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: Container(
-                                                      height: getWidth(72),
-                                                      width: getWidth(72),
-                                                      decoration: boxDecoration(
-                                                          radius: 10,
-                                                          color: Colors.grey),
-                                                      child: Image.network(
-                                                        imagePath +
-                                                            rideList[index]
-                                                                .userImage
-                                                                .toString(),
-                                                        height: getWidth(72),
-                                                        width: getWidth(72),
-                                                      )),
-                                                ),
-                                                SizedBox(width: 16),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      '${rideList[index].createdDate} ${rideList[index].bookingTime}',
-                                                      style: theme
-                                                          .textTheme.bodyText2,
-                                                    ),
-                                                    /* SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(
-                                    getString1(rideList[index].username.toString()),
-                                    style: theme.textTheme.caption,
-                                  ),*/
-                                                  ],
-                                                ),
-                                                Spacer(),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: [
-                                                    Text(
-                                                      '\u{20B9} ${rideList[index].amount}',
-                                                      style: theme
-                                                          .textTheme.bodyText2!
-                                                          .copyWith(
-                                                              color: theme
-                                                                  .primaryColor),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 8,
-                                                    ),
-                                                    Text(
-                                                      '${rideList[index].transaction}',
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                      style: theme
-                                                          .textTheme.caption,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : SizedBox(),
-                          )
-                        : Center(
-                            child: text(getTranslated(context, "Noearnings")!,
-                                fontFamily: fontMedium,
-                                fontSize: 12.sp,
-                                textColor: Colors.black),
-                          )
-                    : Center(child: CircularProgressIndicator()),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                /*Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  "My Earning",
-                  style: theme.textTheme.headline4,
-                ),
-              ),*/
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "${getTranslated(context, "Totalearning")} - \u{20B9}$balance",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "${getTranslated(context, "ONLINE_EARNING")} - \u{20B9}$total",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "${getTranslated(context, "Admincommission")} - \u{20B9}$commission",
-                        style: theme.textTheme.bodySmall!.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      /* Text(
-                        "Weekly Payout - \u{20B9}$payout",
-                        style:
-                        theme.textTheme.bodySmall!.copyWith(color: theme.hintColor,fontWeight: FontWeight.bold),
-                      ),*/
-                    ],
-                  ),
-                ),
-                /*Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Earning Bonus - \u{20B9}$earning",
-                        style:
-                        theme.textTheme.bodySmall!.copyWith(color: theme.hintColor,fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),*/
-                boxHeight(19),
-                Wrap(
-                  spacing: 3.w,
-                  children: filter.map((e) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedFil = e.toString();
-                        });
-                        getEarning("Payment/get_account_summary_by_online",
-                            selectedFil);
-                      },
-                      child: Chip(
-                        side: BorderSide(color: MyColorName.primaryLite),
-                        backgroundColor: selectedFil == e
-                            ? MyColorName.primaryLite
-                            : Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        label: text(e,
-                            fontFamily: fontMedium,
-                            fontSize: 10.sp,
-                            textColor:
-                                selected == e ? Colors.white : Colors.black),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                boxHeight(19),
-                !loading
-                    ? rideList.length > 0
-                        ? ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: rideList.length,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) => rideList[index]
-                                    .show!
-                                ? GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  RideInfoPage(
-                                                    rideList[index],
-                                                    check: "yes",
-                                                  )));
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.all(getWidth(10)),
-                                      decoration: boxDecoration(
-                                          radius: 10,
-                                          bgColor: Colors.white,
-                                          showShadow: true),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            height: 80,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 12, horizontal: 16),
-                                            child: Row(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: Container(
-                                                      decoration: boxDecoration(
-                                                          radius: 10,
-                                                          color: Colors.grey),
-                                                      height: getWidth(72),
-                                                      width: getWidth(72),
-                                                      child: Image.network(
-                                                        imagePath +
-                                                            rideList[index]
-                                                                .userImage
-                                                                .toString(),
-                                                        height: getWidth(72),
-                                                        width: getWidth(72),
-                                                      )),
-                                                ),
-                                                SizedBox(width: 16),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      '${rideList[index].createdDate} ${rideList[index].bookingTime}',
-                                                      style: theme
-                                                          .textTheme.bodyText2,
-                                                    ),
-                                                    /* SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(
-                                    getString1(rideList[index].username.toString()),
-                                    style: theme.textTheme.caption,
-                                  ),*/
-                                                  ],
-                                                ),
-                                                Spacer(),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: [
-                                                    Text(
-                                                      '\u{20B9} ${rideList[index].amount}',
-                                                      style: theme
-                                                          .textTheme.bodyText2!
-                                                          .copyWith(
-                                                              color: theme
-                                                                  .primaryColor),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 8,
-                                                    ),
-                                                    Text(
-                                                      '${rideList[index].transaction}',
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                      style: theme
-                                                          .textTheme.caption,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : SizedBox(),
-                          )
-                        : Center(
-                            child: text(getTranslated(context, "Noearnings")!,
-                                fontFamily: fontMedium,
-                                fontSize: 12.sp,
-                                textColor: Colors.black),
-                          )
-                    : Center(child: CircularProgressIndicator()),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(15),
-            child: Column(
-              children: [
-                /*SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("Cash Amount : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text(
-                        "₹" + "${wCashAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),*/
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("${getTranslated(context, "ONLINE_AMOUNT")} : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text("₹" + "${wOnlineAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),
-                /*SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("Admin Cash Commission : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text(
-                        "₹" + "${wCashAAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),*/
-                /*SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("Admin Online Commission : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text(
-                        "₹" + "${wOnlineAAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),*/
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("${getTranslated(context, "Referralamount")} : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text("₹" + "${wReferAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("${getTranslated(context, "Joiningbonus")} : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text("₹" + "${wBonusAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("${getTranslated(context, "Incentivebonus")} : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text("₹" + "${wIncentiveAmount}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("Promo Bonus : ",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                    text("₹" + "${bonus}",
-                        fontSize: 10.sp,
-                        fontFamily: fontMedium,
-                        textColor: Colors.black),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text("${getTranslated(context, "Weeklypayout")} : ",
-                        fontSize: 14.sp,
-                        fontFamily: fontBold,
-                        textColor: Colors.black),
-                    text("₹" + "${wPayAmount}",
-                        fontSize: 14.sp,
-                        fontFamily: fontBold,
-                        textColor: Colors.black),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            child: Container(
+        body: TabBarView(
+          controller: tabController,
+          children: [
+            SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  /*Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    "My Earning",
+                    style: theme.textTheme.headline4,
+                  ),
+                ),*/
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    child: Text(
-                      getTranslated(context, "Payouthistory")!,
-                      style: theme.textTheme.bodyText2!
-                          .copyWith(color: theme.hintColor),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "${getTranslated(context, "Totalearning")} - \u{20B9}$balance",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "${getTranslated(context, "CASH_EARNING")} - \u{20B9}$total",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
-                  saveStatus
-                      ? walletList.length > 0
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: selected
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "${getTranslated(context, "Admincommission")} - \u{20B9}$commission",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        selected
+                            ? Text(
+                                "${getTranslated(context, "Weeklypayout")} - \u{20B9}$payout",
+                                style: theme.textTheme.bodySmall!.copyWith(
+                                    color: theme.hintColor,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            : SizedBox(),
+                      ],
+                    ),
+                  ),
+                  selected
+                      ? Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "${getTranslated(context, "Joining")} - \u{20B9}$earning",
+                                style: theme.textTheme.bodySmall!.copyWith(
+                                    color: theme.hintColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SizedBox(),
+                  boxHeight(19),
+                  Wrap(
+                    spacing: 3.w,
+                    children: filter.map((e) {
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            selectedFil = e.toString();
+                          });
+                          getEarning("Payment/get_account_summary_by_cash",
+                              selectedFil);
+                        },
+                        child: Chip(
+                          side: BorderSide(color: MyColorName.primaryLite),
+                          backgroundColor: selectedFil == e
+                              ? MyColorName.primaryLite
+                              : Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          label: text(e,
+                              fontFamily: fontMedium,
+                              fontSize: 10.sp,
+                              textColor:
+                                  selected == e ? Colors.white : Colors.black),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  boxHeight(19),
+                  !loading
+                      ? rideList.length > 0
                           ? ListView.builder(
                               physics: NeverScrollableScrollPhysics(),
-                              itemCount: walletList.length,
+                              itemCount: rideList.length,
                               shrinkWrap: true,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: 4.0),
-                                  child: Card(
-                                    elevation: 5,
-                                    margin: EdgeInsets.all(8),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: ListTile(
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 6),
-                                      tileColor: Colors.transparent,
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Container(
-                                            height: getWidth(72),
-                                            width: getWidth(72),
-                                            child: Image.network(image,
-                                                height: 60, width: 60)),
-                                      ),
-                                      title: Text(
-                                        walletList[index].note != null
-                                            ? "${walletList[index].note}"
-                                            : "Status - ${walletList[index].status}",
-                                        style: theme.textTheme.titleSmall,
-                                      ),
-                                      subtitle: Text(
-                                        '${walletList[index].dateAdded} ${walletList[index].time}',
-                                        style: theme.textTheme.caption,
-                                      ),
-                                      trailing: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            ' \u{20B9}${walletList[index].balance}',
-                                            style: theme.textTheme.headline6!
-                                                .copyWith(
-                                                    color: Colors.green,
-                                                    fontSize: 17),
-                                          ),
-                                          /*  SizedBox(height: 4),
-                                Text(
-                                  getTranslated(context,Strings.RIDE_INFO)! + '  >',
-                                  style: theme.textTheme.caption!
-                                      .copyWith(color: theme.primaryColor),
-                                ),*/
-                                        ],
-                                      ),
-                                      onTap: () => Navigator.pushNamed(
-                                          context, PageRoutes.rideInfoPage),
+                              itemBuilder: (context, index) => rideList[index]
+                                      .show!
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    RideInfoPage(
+                                                      rideList[index],
+                                                      check: "yes",
+                                                    )));
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.all(getWidth(10)),
+                                        decoration: boxDecoration(
+                                            radius: 10,
+                                            bgColor: Colors.white,
+                                            showShadow: true),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              height: 80,
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 12, horizontal: 16),
+                                              child: Row(
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child: Container(
+                                                        height: getWidth(72),
+                                                        width: getWidth(72),
+                                                        decoration:
+                                                            boxDecoration(
+                                                                radius: 10,
+                                                                color: Colors
+                                                                    .grey),
+                                                        child: Image.network(
+                                                          imagePath +
+                                                              rideList[index]
+                                                                  .userImage
+                                                                  .toString(),
+                                                          height: getWidth(72),
+                                                          width: getWidth(72),
+                                                        )),
+                                                  ),
+                                                  SizedBox(width: 16),
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        '${rideList[index].createdDate} ${rideList[index].bookingTime}',
+                                                        style: theme.textTheme
+                                                            .bodyText2,
+                                                      ),
+                                                      /* SizedBox(
+                                      height: 8,
                                     ),
-                                  ),
-                                );
-                              })
+                                    Text(
+                                      getString1(rideList[index].username.toString()),
+                                      style: theme.textTheme.caption,
+                                    ),*/
+                                                    ],
+                                                  ),
+                                                  Spacer(),
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        '\u{20B9} ${rideList[index].amount}',
+                                                        style: theme.textTheme
+                                                            .bodyText2!
+                                                            .copyWith(
+                                                                color: theme
+                                                                    .primaryColor),
+                                                      ),
+                                                      SizedBox(
+                                                        height: 8,
+                                                      ),
+                                                      Text(
+                                                        '${rideList[index].transaction}',
+                                                        textAlign:
+                                                            TextAlign.right,
+                                                        style: theme
+                                                            .textTheme.caption,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : SizedBox(),
+                            )
                           : Center(
-                              child: text(
-                                  getTranslated(context, "Notransaction")!,
+                              child: text(getTranslated(context, "Noearnings")!,
                                   fontFamily: fontMedium,
                                   fontSize: 12.sp,
                                   textColor: Colors.black),
@@ -904,8 +537,646 @@ class _AccountPageState extends State<AccountPage>
                 ],
               ),
             ),
-          ),
-        ],
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  /*Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    "My Earning",
+                    style: theme.textTheme.headline4,
+                  ),
+                ),*/
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "${getTranslated(context, "Totalearning")} - \u{20B9}$balance",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "${getTranslated(context, "ONLINE_EARNING")} - \u{20B9}$total",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "${getTranslated(context, "Admincommission")} - \u{20B9}$commission",
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        /* Text(
+                          "Weekly Payout - \u{20B9}$payout",
+                          style:
+                          theme.textTheme.bodySmall!.copyWith(color: theme.hintColor,fontWeight: FontWeight.bold),
+                        ),*/
+                      ],
+                    ),
+                  ),
+                  /*Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Earning Bonus - \u{20B9}$earning",
+                          style:
+                          theme.textTheme.bodySmall!.copyWith(color: theme.hintColor,fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),*/
+                  boxHeight(19),
+                  Wrap(
+                    spacing: 3.w,
+                    children: filter.map((e) {
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            selectedFil = e.toString();
+                          });
+                          getEarning("Payment/get_account_summary_by_online",
+                              selectedFil);
+                        },
+                        child: Chip(
+                          side: BorderSide(color: MyColorName.primaryLite),
+                          backgroundColor: selectedFil == e
+                              ? MyColorName.primaryLite
+                              : Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          label: text(e,
+                              fontFamily: fontMedium,
+                              fontSize: 10.sp,
+                              textColor:
+                                  selected == e ? Colors.white : Colors.black),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  boxHeight(19),
+                  !loading
+                      ? rideList.length > 0
+                          ? ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: rideList.length,
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) => rideList[index]
+                                      .show!
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    RideInfoPage(
+                                                      rideList[index],
+                                                      check: "yes",
+                                                    )));
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.all(getWidth(10)),
+                                        decoration: boxDecoration(
+                                            radius: 10,
+                                            bgColor: Colors.white,
+                                            showShadow: true),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              height: 80,
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 12, horizontal: 16),
+                                              child: Row(
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child: Container(
+                                                        decoration:
+                                                            boxDecoration(
+                                                                radius: 10,
+                                                                color: Colors
+                                                                    .grey),
+                                                        height: getWidth(72),
+                                                        width: getWidth(72),
+                                                        child: Image.network(
+                                                          imagePath +
+                                                              rideList[index]
+                                                                  .userImage
+                                                                  .toString(),
+                                                          height: getWidth(72),
+                                                          width: getWidth(72),
+                                                        )),
+                                                  ),
+                                                  SizedBox(width: 16),
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        '${rideList[index].createdDate} ${rideList[index].bookingTime}',
+                                                        style: theme.textTheme
+                                                            .bodyText2,
+                                                      ),
+                                                      /* SizedBox(
+                                      height: 8,
+                                    ),
+                                    Text(
+                                      getString1(rideList[index].username.toString()),
+                                      style: theme.textTheme.caption,
+                                    ),*/
+                                                    ],
+                                                  ),
+                                                  Spacer(),
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        '\u{20B9} ${rideList[index].amount}',
+                                                        style: theme.textTheme
+                                                            .bodyText2!
+                                                            .copyWith(
+                                                                color: theme
+                                                                    .primaryColor),
+                                                      ),
+                                                      SizedBox(
+                                                        height: 8,
+                                                      ),
+                                                      Text(
+                                                        '${rideList[index].transaction}',
+                                                        textAlign:
+                                                            TextAlign.right,
+                                                        style: theme
+                                                            .textTheme.caption,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : SizedBox(),
+                            )
+                          : Center(
+                              child: text(getTranslated(context, "Noearnings")!,
+                                  fontFamily: fontMedium,
+                                  fontSize: 12.sp,
+                                  textColor: Colors.black),
+                            )
+                      : Center(child: CircularProgressIndicator()),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.all(15),
+              child: Column(
+                children: [
+                  /*SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("Cash Amount : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text(
+                          "₹" + "${wCashAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),*/
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("${getTranslated(context, "ONLINE_AMOUNT")} : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text("₹" + "${wOnlineAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  /*SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("Admin Cash Commission : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text(
+                          "₹" + "${wCashAAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),*/
+                  /*SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("Admin Online Commission : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text(
+                          "₹" + "${wOnlineAAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),*/
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("${getTranslated(context, "Referralamount")} : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text("₹" + "${wReferAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("${getTranslated(context, "Joiningbonus")} : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text("₹" + "${wBonusAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("${getTranslated(context, "Incentivebonus")} : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text("₹" + "${wIncentiveAmount}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("Promo Bonus : ",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                      text("₹" + "${bonus}",
+                          fontSize: 10.sp,
+                          fontFamily: fontMedium,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      text("${getTranslated(context, "Weeklypayout")} : ",
+                          fontSize: 14.sp,
+                          fontFamily: fontBold,
+                          textColor: Colors.black),
+                      text("₹" + "${wPayAmount}",
+                          fontSize: 14.sp,
+                          fontFamily: fontBold,
+                          textColor: Colors.black),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Text(
+                        getTranslated(context, "Payouthistory")!,
+                        style: theme.textTheme.bodyText2!
+                            .copyWith(color: theme.hintColor),
+                      ),
+                    ),
+                    saveStatus
+                        ? walletList.length > 0
+                            ? ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: walletList.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(bottom: 4.0),
+                                    child: Card(
+                                      elevation: 5,
+                                      margin: EdgeInsets.all(8),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        tileColor: Colors.transparent,
+                                        leading: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          child: Container(
+                                              height: getWidth(72),
+                                              width: getWidth(72),
+                                              child: Image.network(image,
+                                                  height: 60, width: 60)),
+                                        ),
+                                        title: Text(
+                                          walletList[index].note != null
+                                              ? "${walletList[index].note}"
+                                              : "Status - ${walletList[index].status}",
+                                          style: theme.textTheme.titleSmall,
+                                        ),
+                                        subtitle: Text(
+                                          '${walletList[index].dateAdded} ${walletList[index].time}',
+                                          style: theme.textTheme.caption,
+                                        ),
+                                        trailing: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              ' \u{20B9}${walletList[index].balance}',
+                                              style: theme.textTheme.headline6!
+                                                  .copyWith(
+                                                      color: Colors.green,
+                                                      fontSize: 17),
+                                            ),
+                                            /*  SizedBox(height: 4),
+                                  Text(
+                                    getTranslated(context,Strings.RIDE_INFO)! + '  >',
+                                    style: theme.textTheme.caption!
+                                        .copyWith(color: theme.primaryColor),
+                                  ),*/
+                                          ],
+                                        ),
+                                        onTap: () => Navigator.pushNamed(
+                                            context, PageRoutes.rideInfoPage),
+                                      ),
+                                    ),
+                                  );
+                                })
+                            : Center(
+                                child: text(
+                                    getTranslated(context, "Notransaction")!,
+                                    fontFamily: fontMedium,
+                                    fontSize: 12.sp,
+                                    textColor: Colors.black),
+                              )
+                        : Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+              ),
+            ),
+            SingleChildScrollView(
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Text(
+                        "Settlement History",
+                        style: theme.textTheme.bodyText2!
+                            .copyWith(color: theme.hintColor),
+                      ),
+                    ),
+                    boxHeight(10),
+                    Center(
+                      child: Container(
+                        width: getWidth(322.1),
+                        decoration: boxDecoration(
+                          bgColor: Colors.white,
+                          radius: 10,
+                          showShadow: true,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selected = false;
+                                });
+                                getWeeklyHistory("pending");
+                              },
+                              child: Container(
+                                height: getHeight(49),
+                                width: getWidth(160),
+                                decoration: !selected
+                                    ? BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Color.fromARGB(
+                                                52, 61, 164, 139),
+                                            offset: Offset(0.0, 0.0),
+                                            blurRadius: 8.0,
+                                          )
+                                        ],
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Theme.of(context).primaryColor,
+                                      )
+                                    : BoxDecoration(),
+                                child: Center(
+                                  child: text(
+                                    getTranslated(context, "Pending")!,
+                                    fontFamily: fontSemibold,
+                                    fontSize: 11.sp,
+                                    textColor: !selected
+                                        ? Colors.white
+                                        : Color(0xff589605),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selected = true;
+                                });
+                                getWeeklyHistory("complete");
+                              },
+                              child: Container(
+                                height: getHeight(49),
+                                width: getWidth(160),
+                                decoration: selected
+                                    ? BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Color.fromARGB(
+                                                52, 61, 164, 139),
+                                            offset: Offset(0.0, 0.0),
+                                            blurRadius: 8.0,
+                                          )
+                                        ],
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Theme.of(context).primaryColor,
+                                      )
+                                    : BoxDecoration(),
+                                child: Center(
+                                  child: text(
+                                    getTranslated(context, "Completed")!,
+                                    fontFamily: fontSemibold,
+                                    fontSize: 11.sp,
+                                    textColor: selected
+                                        ? Colors.white
+                                        : Color(0xff589605),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    boxHeight(19),
+                    !loading
+                        ? settleList.length > 0
+                            ? ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: settleList.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(bottom: 4.0),
+                                    child: Card(
+                                      elevation: 5,
+                                      margin: EdgeInsets.all(8),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        tileColor: Colors.transparent,
+                                        leading: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          child: Container(
+                                              height: getWidth(72),
+                                              width: getWidth(72),
+                                              child: Image.network(image,
+                                                  height: 60, width: 60)),
+                                        ),
+                                        title: Text(
+                                          "${getDate1(settleList[index].firstDate)} - ${settleList[index].lastDate}",
+                                          style: theme.textTheme.titleSmall,
+                                        ),
+                                        subtitle: Text(
+                                          '${settleList[index].day}',
+                                          style: theme.textTheme.caption,
+                                        ),
+                                        trailing: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              selected
+                                                  ? '\u{20B9}${settleList[index].adminPaidDriver}'
+                                                  : '\u{20B9}${settleList[index].totalDueDriver}',
+                                              style: theme.textTheme.headline6!
+                                                  .copyWith(
+                                                      color: Colors.green,
+                                                      fontSize: 17),
+                                            ),
+                                            /*  SizedBox(height: 4),
+                                  Text(
+                                    getTranslated(context,Strings.RIDE_INFO)! + '  >',
+                                    style: theme.textTheme.caption!
+                                        .copyWith(color: theme.primaryColor),
+                                  ),*/
+                                          ],
+                                        ),
+                                        onTap: () => Navigator.pushNamed(
+                                            context, PageRoutes.rideInfoPage),
+                                      ),
+                                    ),
+                                  );
+                                })
+                            : Center(
+                                child: text(
+                                    getTranslated(context, "Notransaction")!,
+                                    fontFamily: fontMedium,
+                                    fontSize: 12.sp,
+                                    textColor: Colors.black),
+                              )
+                        : Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -55,6 +55,7 @@ class GetLocation {
         updateLocation();
         if (latitude != value.first.coordinates.latitude) {
           latitude = value.first.coordinates.latitude;
+          longitude = value.first.coordinates.longitude;
           print("ok");
           onResult(value);
         } else {

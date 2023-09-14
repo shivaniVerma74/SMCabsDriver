@@ -22,9 +22,9 @@ class ReferEarn extends StatefulWidget {
 
 class _ReferEarnState extends State<ReferEarn> {
   String referCode = "",
-      title = "Sahayatri Driver App\n",
+      title = "SM Cabs Driver App\n",
       des =
-          "You can use this code to refer your friends \nto Sahayatri Driver App and get rewarded";
+          "You can use this code to refer your friends \nto SM Cabs Driver App and get rewarded";
   bool saveStatus = true;
   ApiBaseHelper apiBase = new ApiBaseHelper();
   bool isNetwork = false;
@@ -131,7 +131,7 @@ class _ReferEarnState extends State<ReferEarn> {
             ),
           ),
           backgroundColor: Color(
-              0xff2CC8DE), //<- background color to combine with the picture :-)
+              0xff589605), //<- background color to combine with the picture :-)
         ),
         body: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -179,7 +179,7 @@ class _ReferEarnState extends State<ReferEarn> {
                 child: Column(children: [
                   InkWell(
                     onTap: () {
-                      SocialShare.copyToClipboard(refer);
+                      SocialShare.copyToClipboard();
                       setSnackbar("Code Copied", context);
                     },
                     child: DottedBorder(
@@ -188,7 +188,7 @@ class _ReferEarnState extends State<ReferEarn> {
                         child: Container(
                           height: 50,
                           width: 250,
-                          color: Color(0xff2CC8DE),
+                          color: Color(0xff589605),
                           child: Center(child: Text(refer)),
                         )),
                   ),
@@ -203,7 +203,7 @@ class _ReferEarnState extends State<ReferEarn> {
                             left: 10.w, bottom: 0.0, top: 0.0, right: 10.w),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Color(0xff2CC8DE),
+                            primary: Color(0xff589605),
                           ),
                           onPressed: () {
                             SocialShare.shareOptions(

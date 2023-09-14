@@ -11,6 +11,7 @@ import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
 import 'package:qcabs_driver/DrawerPages/ContactUs/contact_us_page.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
 import 'package:qcabs_driver/DrawerPages/Profile/reviews.dart';
+import 'package:qcabs_driver/DrawerPages/Rides/intercity_rides.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/my_rides_page.dart';
 import 'package:qcabs_driver/DrawerPages/Rides/rental_rides.dart';
 import 'package:qcabs_driver/DrawerPages/Settings/settings_page.dart';
@@ -34,17 +35,17 @@ import 'Refer Earn/refer_earn.dart';
 import 'package:http/http.dart' as http;
 
 import 'accounts.dart';
+
 class AppDrawer extends StatefulWidget {
   final bool fromHome;
-
-  AppDrawer([this.fromHome = true]);
+  ValueChanged onResult;
+  AppDrawer({this.fromHome = true, required this.onResult});
 
   @override
   _AppDrawerState createState() => _AppDrawerState();
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-
   static final AdRequest request = AdRequest(
     keywords: <String>['foo', 'bar'],
     contentUrl: 'http://foo.com/bar.html',
@@ -56,7 +57,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Future<void> _createAnchoredBanner(BuildContext context) async {
     final AnchoredAdaptiveBannerAdSize? size =
-    await AdSize.getAnchoredAdaptiveBannerAdSize(
+        await AdSize.getAnchoredAdaptiveBannerAdSize(
       Orientation.portrait,
       MediaQuery.of(context).size.width.truncate(),
     );
@@ -88,7 +89,6 @@ class _AppDrawerState extends State<AppDrawer> {
     //   ),
     // );
     // return banner.load();
-
   }
 
   String userNumber = "";
@@ -97,8 +97,9 @@ class _AppDrawerState extends State<AppDrawer> {
       Map params = {
         "user_id": curUserId.toString(),
       };
-      var res =
-      await http.get(Uri.parse(baseUrl + "/get_setting"),);
+      var res = await http.get(
+        Uri.parse(baseUrl + "/get_setting"),
+      );
       Map response = jsonDecode(res.body);
       if (response['status']) {
         var data = response["data"];
@@ -113,16 +114,18 @@ class _AppDrawerState extends State<AppDrawer> {
       setSnackbar("Something Went Wrong", context);
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getNumber();
   }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    return Builder(builder: (BuildContext context){
+    return Builder(builder: (BuildContext context) {
       if (!_loadingAnchoredBanner) {
         _loadingAnchoredBanner = true;
         _createAnchoredBanner(context);
@@ -133,11 +136,11 @@ class _AppDrawerState extends State<AppDrawer> {
             ListView(
               children: [
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>  MyProfilePage()),
+                      MaterialPageRoute(builder: (context) => MyProfilePage()),
                     );
                   },
                   child: Container(
@@ -160,8 +163,12 @@ class _AppDrawerState extends State<AppDrawer> {
                                     height: 72,
                                     width: 72,
                                     fit: BoxFit.fill,
-                                    colorBlendMode: profileStatus=="0"?BlendMode.hardLight:BlendMode.color,color: profileStatus=="0"?Colors.white.withOpacity(0.4):Colors.transparent,
-
+                                    colorBlendMode: profileStatus == "0"
+                                        ? BlendMode.hardLight
+                                        : BlendMode.color,
+                                    color: profileStatus == "0"
+                                        ? Colors.white.withOpacity(0.4)
+                                        : Colors.transparent,
                                   ),
                                 ),
                               ),
@@ -177,8 +184,7 @@ class _AppDrawerState extends State<AppDrawer> {
                                         style: theme.textTheme.headline5),
                                   ),
                                   SizedBox(height: 6),
-                                  Text(mobile,
-                                      style: theme.textTheme.caption),
+                                  Text(mobile, style: theme.textTheme.caption),
                                   SizedBox(height: 4),
                                   Container(
                                     padding: EdgeInsets.symmetric(
@@ -204,7 +210,7 @@ class _AppDrawerState extends State<AppDrawer> {
                             ],
                           ),
                         ),
-                       /* IconButton(
+                        /* IconButton(
                             icon: Icon(Icons.close),
                             color: theme.primaryColor,
                             iconSize: 28,
@@ -229,12 +235,16 @@ class _AppDrawerState extends State<AppDrawer> {
                 //     child: AdWidget(ad: _anchoredBanner!),
                 //   ),
                 buildListTile(
-                    context, Icons.home, getTranslated(context,"HOME")!, () {
-                      Navigator.pop(context);
-                  Navigator.push(
+                    context, Icons.home, getTranslated(context, "HOME")!, () {
+                  Navigator.pop(context);
+                  /*Navigator.popUntil(
                     context,
-                    MaterialPageRoute(builder: (context) =>  OfflinePage("")),
-                  );
+                    ModalRoute.withName('/'),
+                  );*/
+                  /*Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => OfflinePage("")),
+                  );*/
                   /*if (widget.fromHome)
                     Navigator.pushReplacementNamed(
                         context, PageRoutes.offlinePage);
@@ -243,108 +253,157 @@ class _AppDrawerState extends State<AppDrawer> {
                         context, PageRoutes.offlinePage);*/
                 }),
                 buildListTile(context, Icons.person,
-                    getTranslated(context,"MY_PROFILE")!, () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) =>  MyProfilePage()),
-                      );
-                    }),
+                    getTranslated(context, "MY_PROFILE")!, () async {
+                  //Navigator.pop(context);
+                  var result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyProfilePage()),
+                  );
+                  if (result != null) {
+                    widget.onResult(result);
+                  }
+                  Navigator.pop(context);
+                }),
+                // ListTile(
+                //   title: Text(
+                //     getTranslated(context, "MY_ADDRESS")!,
+                //     style: TextStyle(
+                //       fontSize: 20,
+                //       fontWeight: FontWeight.w600,
+                //     ),
+                //   ),
+                //   leading: Icon(Icons.location_on_outlined,
+                //       color: Color(0xff589605)),
+                //   /*   trailing: Text("₹500",style: TextStyle(
+                //     fontSize: 20,
+                //     fontWeight: FontWeight.bold,
+                //   ),),*/
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => AddressScreen()),
+                //     );
+                //     /* Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => const ReferEarn()),
+                //     );*/
+                //   },
+                // ),
+                // ListTile(
+                //   title: Text(
+                //     getTranslated(context, "Joining")!,
+                //     style: TextStyle(
+                //       fontSize: 20,
+                //       fontWeight: FontWeight.w600,
+                //     ),
+                //   ),
+                //   leading: Icon(Icons.star, color: Color(0xff589605)),
+                //   /*   trailing: Text("₹500",style: TextStyle(
+                //     fontSize: 20,
+                //     fontWeight: FontWeight.bold,
+                //   ),),*/
+                //   onTap: () async {
+                //     //Navigator.pop(context);
+                //     var result = await Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => JoiningBonus()),
+                //     );
+                //     if (result != null) {
+                //       widget.onResult(result);
+                //     }
+                //     Navigator.pop(context);
+                //     /* Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => const ReferEarn()),
+                //     );*/
+                //   },
+                // ),
                 ListTile(
-                  title: Text(getTranslated(context, "MY_ADDRESS")!,style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),),
-                  leading: Icon(Icons.location_on_outlined,color: Color(0xff2CC8DE)),
-                  /*   trailing: Text("₹500",style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),),*/
-                  onTap: (){
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) =>  AddressScreen()),
-                    );
-                    /* Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ReferEarn()),
-                    );*/
-                  },
-                ),
-                ListTile(
-                  title: Text(getTranslated(context,"Joining")!,style: TextStyle(
-                    fontSize: 20,
+                  title: Text(
+                    getTranslated(context, "ACCOUNTS")!,
+                    style: TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.w600,
-                  ),),
-                  leading: Icon(Icons.star,color: Color(0xff2CC8DE)),
-               /*   trailing: Text("₹500",style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),),*/
-                  onTap: (){
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) =>  JoiningBonus()),
-                    );
-                   /* Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ReferEarn()),
-                    );*/
-                  },
-                ),
-                ListTile(
-                  title: Text(getTranslated(context, "ACCOUNTS")!,style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),),
-                  leading: Icon(Icons.payment,color: Color(0xff2CC8DE)),
+                    ),
+                  ),
+                  leading: Icon(Icons.payment, color: Color(0xff589605)),
                   /*   trailing: Text("₹500",style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),),*/
-                  onTap: (){
-                    Navigator.pop(context);
-                    Navigator.push(
+                  onTap: () async {
+                    //Navigator.pop(context);
+                    var result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>  AccountPage()),
+                      MaterialPageRoute(builder: (context) => AccountPage()),
                     );
+                    if (result != null) {
+                      widget.onResult(result);
+                    }
+                    Navigator.pop(context);
                     /* Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ReferEarn()),
                     );*/
                   },
                 ),
-               /* buildListTile(context, Icons.star,
+                /* buildListTile(context, Icons.star,
                     getTranslated(context,Strings.Joining)!, () {
                       Navigator.popAndPushNamed(context, PageRoutes.myProfilePage);
                     }),*/
                 buildListTile(context, Icons.drive_eta,
-                    getTranslated(context,"MY_RIDES")!, () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) =>  MyRidesPage()),
-                      );
-                      //Navigator.popAndPushNamed(context, PageRoutes.myRidesPage);
-                    }),
+                    getTranslated(context, "MY_RIDES")!, () async {
+                  // Navigator.pop(context);
+                  var result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyRidesPage()),
+                  );
+                  if (result != null) {
+                    widget.onResult(result);
+                  }
+                  Navigator.pop(context);
+                  //Navigator.popAndPushNamed(context, PageRoutes.myRidesPage);
+                }),
+                // buildListTile(context, Icons.history, "Intercity", () async {
+                //   //    Navigator.pop(context);
+                //   var result = await Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (context) => IntercityRides(
+                //               selected: false,
+                //             )),
+                //   );
+                //   if (result != null) {
+                //     widget.onResult(result);
+                //   }
+                //   Navigator.pop(context);
+                //   //Navigator.popAndPushNamed(context, PageRoutes.myRidesPage);
+                // }),
                 ListTile(
-                  title: Text(getTranslated(context, "RENTAL_RIDES")!,style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),),
-                  leading: Icon(Icons.location_on_outlined,color: Color(0xff2CC8DE)),
+                  title: Text(
+                    getTranslated(context, "RENTAL_RIDES")!,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  leading: Icon(Icons.location_on_outlined,
+                      color: Color(0xff589605)),
                   /*   trailing: Text("₹500",style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),),*/
-                  onTap: (){
-                    Navigator.pop(context);
-                    Navigator.push(
+                  onTap: () async {
+                    //  Navigator.pop(context);
+                    var result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>  RentalRides()),
+                      MaterialPageRoute(builder: (context) => RentalRides()),
                     );
+                    if (result != null) {
+                      widget.onResult(result);
+                    }
+                    Navigator.pop(context);
                     /* Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ReferEarn()),
@@ -352,40 +411,53 @@ class _AppDrawerState extends State<AppDrawer> {
                   },
                 ),
                 buildListTile(
-                    context, Icons.star, getTranslated(context,"MY_RATINGS")!,
-                        () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) =>  ReviewsPage()),
-                          );
-                      /*Navigator.popAndPushNamed(context, PageRoutes.reviewsPage);*/
-                    }),
+                    context, Icons.star, getTranslated(context, "MY_RATINGS")!,
+                    () async {
+                  // Navigator.pop(context);
+                  var result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ReviewsPage()),
+                  );
+                  if (result != null) {
+                    widget.onResult(result);
+                  }
+                  Navigator.pop(context);
+                  /*Navigator.popAndPushNamed(context, PageRoutes.reviewsPage);*/
+                }),
                 buildListTile(context, Icons.account_balance_wallet,
-                    getTranslated(context,"WALLET")!, () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) =>  WalletPage()),
-                      );
-                     /* if (widget.fromHome)
+                    getTranslated(context, "WALLET")!, () async {
+                  // Navigator.pop(context);
+                  var result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => WalletPage()),
+                  );
+                  if (result != null) {
+                    widget.onResult(result);
+                  }
+                  Navigator.pop(context);
+                  /* if (widget.fromHome)
                         Navigator.popAndPushNamed(context, PageRoutes.walletPage);
                       else
                         Navigator.pushReplacementNamed(
                             context, PageRoutes.walletPage);*/
-                    }),
+                }),
                 ListTile(
-                  title: Text(getTranslated(context, "ReferEarn")!,style: TextStyle(
-                    fontSize: 20,
-                      fontWeight: FontWeight.w600
-                  ),),
-                  leading: Icon(Icons.qr_code,color: Color(0xff2CC8DE)),
-                  onTap: (){
-                    Navigator.pop(context);
-                    Navigator.push(
+                  title: Text(
+                    getTranslated(context, "ReferEarn")!,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  leading: Icon(Icons.qr_code, color: Color(0xff589605)),
+                  onTap: () async {
+                    //Navigator.pop(context);
+                    var result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ReferEarn()),
+                      MaterialPageRoute(
+                          builder: (context) => const ReferEarn()),
                     );
+                    if (result != null) {
+                      widget.onResult(result);
+                    }
+                    Navigator.pop(context);
                   },
                 ),
                 // buildListTile(context, Icons.local_offer,
@@ -396,52 +468,53 @@ class _AppDrawerState extends State<AppDrawer> {
                 //         Navigator.pushReplacementNamed(
                 //             context, PageRoutes.promoCode);
                 //     }),
-                buildListTile(context, Icons.settings,
-                    getTranslated(context,"SETTINGS")!, () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) =>  SettingsPage()),
-                      );
-                     /* if (widget.fromHome)
-                        Navigator.popAndPushNamed(context, PageRoutes.settingsPage);
-                      else
-                        Navigator.pushReplacementNamed(
-                            context, PageRoutes.settingsPage);*/
-                    }),
-                buildListTile(context, Icons.call,
-                    getTranslated(context, "EmergencyCall")!, () {
-                      launch("tel://${userNumber}");
-                    }),
+                // buildListTile(context, Icons.settings,
+                //     getTranslated(context, "SETTINGS")!, () {
+                //   Navigator.pop(context);
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(builder: (context) => SettingsPage()),
+                //   );
+                //   /* if (widget.fromHome)
+                //         Navigator.popAndPushNamed(context, PageRoutes.settingsPage);
+                //       else
+                //         Navigator.pushReplacementNamed(
+                //             context, PageRoutes.settingsPage);*/
+                // }),
+                // buildListTile(context, Icons.call,
+                //     getTranslated(context, "EmergencyCall")!, () {
+                //   launch("tel://${userNumber}");
+                // }),
                 buildListTile(
-                    context, Icons.help, getTranslated(context,"FAQS")!, () {
+                    context, Icons.help, getTranslated(context, "FAQS")!, () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) =>  FaqPage()),
+                    MaterialPageRoute(builder: (context) => FaqPage()),
                   );
-                 /* if (widget.fromHome)
+                  /* if (widget.fromHome)
                     Navigator.popAndPushNamed(context, PageRoutes.faqPage);
                   else
                     Navigator.pushReplacementNamed(context, PageRoutes.faqPage);*/
                 }),
                 buildListTile(
-                    context, Icons.mail, getTranslated(context,"CONTACT_US")!,
-                        () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) =>  ContactUsPage()),
-                          );
-                      /*if (widget.fromHome)
+                    context, Icons.mail, getTranslated(context, "CONTACT_US")!,
+                    () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ContactUsPage()),
+                  );
+                  /*if (widget.fromHome)
                         Navigator.popAndPushNamed(
                             context, PageRoutes.contactUsPage);
                       else
                         Navigator.pushReplacementNamed(
                             context, PageRoutes.contactUsPage);*/
-                    }),
+                }),
                 buildListTile(
-                    context, Icons.logout,getTranslated(context, "Logout")!, () {
+                    context, Icons.logout, getTranslated(context, "Logout")!,
+                    () {
                   showDialog(
                       context: context,
                       // barrierDismissible: false,
@@ -449,18 +522,18 @@ class _AppDrawerState extends State<AppDrawer> {
                         return AlertDialog(
                           title: Text("Log Out"
                               // getTranslated(context, "Logout")!
-                        ),
+                              ),
                           content: Text("Do you want to Logout ?"
                               // getTranslated(context, "Doyouwanttologout")!
-                          ),
-
+                              ),
                           actions: <Widget>[
                             ElevatedButton(
                               child: Text(getTranslated(context, "No")!),
-
-                              style:ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(MyColorName.primaryLite),),
-                            /*  textColor: Theme.of(context).colorScheme.primary,
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    MyColorName.primaryLite),
+                              ),
+                              /*  textColor: Theme.of(context).colorScheme.primary,
                               shape: RoundedRectangleBorder(
                                   side: BorderSide(color: Colors.transparent)),*/
                               onPressed: () {
@@ -469,16 +542,22 @@ class _AppDrawerState extends State<AppDrawer> {
                             ),
                             ElevatedButton(
                                 child: Text(getTranslated(context, "Yes")!),
-                                style:ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(MyColorName.primaryLite),),
-                               /* shape: RoundedRectangleBorder(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                      MyColorName.primaryLite),
+                                ),
+                                /* shape: RoundedRectangleBorder(
                                     side: BorderSide(color: Colors.transparent)),
                                 textColor: Theme.of(context).colorScheme.primary,*/
                                 onPressed: () async {
                                   await App.init();
                                   App.localStorage.clear();
                                   //Common().toast("Logout");
-                                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>LoginPage()), (route) => false);
+                                  Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => LoginPage()),
+                                      (route) => false);
                                 }),
                           ],
                         );

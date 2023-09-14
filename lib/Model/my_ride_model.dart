@@ -117,12 +117,17 @@ class MyRideModel {
   String? hours;
   String? start_time, end_time;
   String? sharing_type;
+  String? payment_status, add_on_charge, add_on_time, add_on_distance;
   bool? show;
   MyRideModel(
       {this.id,
       this.hours,
       this.extra_km_charge,
       this.extra_time_charge,
+      this.payment_status,
+      this.add_on_charge,
+      this.add_on_time,
+      this.add_on_distance,
       this.start_time,
       this.end_time,
       this.userId,
@@ -242,6 +247,10 @@ class MyRideModel {
   MyRideModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     userId = json['user_id'];
+    payment_status = json['payment_status'];
+    add_on_charge = json['add_on_charge'];
+    add_on_distance = json['add_on_distance'];
+    add_on_time = json['add_on_time'];
     extra_time_charge = json['extra_time_charge'];
     extra_km_charge = json['extra_km_charge'];
     totalTime = json['total_time'];
@@ -267,14 +276,19 @@ class MyRideModel {
     flightNumber = json['flight_number'];
     package = json['package'];
     promoCode = json['promo_code'];
-    promoDiscount = json['promo_discount'];
+    promoDiscount =
+        json['promo_discount'] != null && json['promo_discount'] != ""
+            ? json['promo_discount']
+            : "0";
     distance = json['distance'];
     amount = json['amount'];
     paidAmount = json['paid_amount'];
     address = json['address'];
     transfer = json['transfer'];
     itemStatus = json['item_status'];
-    transaction = json['transaction'];
+    transaction = json['transaction'] != null && json['transaction'] != ""
+        ? json['transaction']
+        : "Wait For Payment";
     paymentMedia = json['payment_media'];
     km = json['km'];
     timetype = json['timetype'];

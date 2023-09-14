@@ -66,7 +66,7 @@ class RazorPayHelper{
     var options = {
       'key': razorPayKey,
       'amount': amt,
-      'name': 'Sahayatri Driver',
+      'name': 'SM Cabs Driver',
       "order_id":orderId,
       'description': "Order #"+getRandomString(5),
       'external': {

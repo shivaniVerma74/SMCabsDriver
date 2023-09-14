@@ -57,7 +57,7 @@ class _VerificationUIState extends State<VerificationUI> {
           children: [
             SingleChildScrollView(
               child: Container(
-                color: Color(0xff2CC8DE),
+                color: Color(0xff589605),
                 height: MediaQuery.of(context).size.height -
                     AppBar().preferredSize.height -
                     MediaQuery.of(context).padding.top +
@@ -233,10 +233,11 @@ class _VerificationUIState extends State<VerificationUI> {
             App.localStorage
                 .setString("userId", response['data']['id'].toString());
             curUserId = response['data']['id'].toString();
-            Navigator.pushAndRemoveUntil(
+            Navigator.popAndPushNamed(context, "/");
+            /*Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => OfflinePage("")),
-                (route) => false);
+                (route) => false);*/
           }
         } else {}
       } on TimeoutException catch (_) {

@@ -26,17 +26,15 @@ const spacing_standard_new = 16.0;
 const spacing_large = 24.0;
 const spacing_xlarge = 32.0;
 const spacing_xxLarge = 40.0;
-
-
 final int timeOut = 60;
 const int perPage = 10;
 
-final String appName = 'Sahayatri Driver';
+final String appName = 'SM Cabs Driver';
 bool notificationStatus = true;
 int notificationId = 1;
-final String packageName = 'com.sahayatri.driver';
+final String packageName = 'com.smcabs.driver';
 const String languageCode = 'languageCode';
-final String baseUrl = 'https://developmentalphawizz.com/taxi/api/Authentication/';
+final String baseUrl = 'http://smcab.in/api/Authentication/';
 final String playUrl = "https://play.google.com/store/apps/details?id=$packageName";
 String? curUserId;
 String? curTikId = '';
@@ -64,7 +62,7 @@ String isActive = '';
 String reject = '';
 String razorPayKey="rzp_test_UUBtmcArqOLqIY";
 String razorPaySecret="NTW3MUbXOtcwUrz5a4YCshqk";
-final String baseUrl1 = 'https://developmentalphawizz.com/taxi/api/';
+final String baseUrl1 = 'http://smcab.in/api/';
 
 double getHeight(double height){
   double tempHeight = 0.0;

@@ -3,7 +3,7 @@ description: A new Flutter application.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.6+7
+version: 1.0.6+2
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -34,17 +34,17 @@ dependencies:
   location: ^4.4.0
   geocoder: ^0.2.1
   google_maps_place_picker_mb: ^2.0.0-mb.16
-  google_maps_flutter: ^2.0.6
+  google_maps_flutter: ^2.2.5
   connectivity: ^3.0.6
   flutter_polyline_points: ^1.0.0
   google_mobile_ads: ^0.13.2
   equatable: ^2.0.3
-
   image_picker_gallery_camera: ^0.2.2
   flutter_local_notifications: ^9.0.0
   path_provider: ^2.0.2
-  firebase_core: ^1.11.0
-  firebase_messaging: ^10.0.4
+  firebase_core:  ^2.9.0
+  firebase_messaging: ^14.4.0
+  firebase_dynamic_links:
   permission_handler: ^10.2.0
   social_share: ^2.2.1
   url_launcher: ^6.0.17
@@ -70,7 +70,6 @@ flutter_icons:
 flutter_launcher_name:
   name: "sahayatri"
 
-
 flutter:
 
   uses-material-design: true
@@ -78,24 +77,19 @@ flutter:
   assets:
     - assets/
     - lib/language/
-
   fonts:
     - family: Andina
       fonts:
         - asset: fonts/andina.ttf
-
     - family: Regular
       fonts:
         - asset: fonts/googlesansregular.ttf
-
     - family: Medium
       fonts:
         - asset: fonts/googlesansmedium.ttf
-
     - family: Semibold
       fonts:
         - asset: fonts/googlesansmedium.ttf
-
     - family: Bold
       fonts:
         - asset: fonts/googlesansebold.ttf
