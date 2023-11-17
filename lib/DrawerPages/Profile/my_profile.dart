@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker_gallery_camera/image_picker_gallery_camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qcabs_driver/Auth/Login/UI/login_page.dart';
 import 'package:qcabs_driver/DrawerPages/Home/offline_page.dart';
@@ -276,7 +276,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 1);
+                              getImage(ImageSource.gallery, context, 1);
+                              // requestPermission(context, 1);
                             },
                             child: Container(
                               height: 100,
@@ -468,7 +469,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 5);
+                              getImage(ImageSource.gallery, context, 5);
+                              // requestPermission(context, 5);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -512,7 +514,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 2);
+                              getImage(ImageSource.gallery, context, 2);
+                              // requestPermission(context, 2);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -556,7 +559,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 3);
+                              getImage(ImageSource.gallery, context, 3);
+                              // requestPermission(context, 3);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -599,7 +603,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 6);
+                              getImage(ImageSource.gallery, context, 6);
+                              // requestPermission(context, 6);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -642,7 +647,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 7);
+                              getImage(ImageSource.gallery, context, 7);
+                              // requestPermission(context, 7);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -685,7 +691,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               if (profileStatus == "0") {
                                 return;
                               }
-                              requestPermission(context, 4);
+                              getImage(ImageSource.gallery, context, 4);
+                              // requestPermission(context, 4);
                             },
                             child: Container(
                               width: getWidth(300),
@@ -1114,36 +1121,36 @@ class _MyProfilePageState extends State<MyProfilePage> {
     });
   }
 
-  void requestPermission(BuildContext context, int i) async {
-    if (await Permission.camera.isPermanentlyDenied ||
-        await Permission.storage.isPermanentlyDenied) {
-      // The user opted to never again see the permission request dialog for this
-      // app. The only way to change the permission's status now is to let the
-      // user manually enable it in the system settings.
-      openAppSettings();
-    } else {
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.camera,
-        Permission.storage,
-      ].request();
-// You can request multiple permissions at once.
-
-      if (statuses[Permission.camera] == PermissionStatus.granted &&
-          statuses[Permission.storage] == PermissionStatus.granted) {
-        getImage(ImgSource.Both, context, i);
-      } else {
-        if (await Permission.camera.isDenied ||
-            await Permission.storage.isDenied) {
-          // The user opted to never again see the permission request dialog for this
-          // app. The only way to change the permission's status now is to let the
-          // user manually enable it in the system settings.
-          openAppSettings();
-        } else {
-          setSnackbar("Oops you just denied the permission", context);
-        }
-      }
-    }
-  }
+//   void requestPermission(BuildContext context, int i) async {
+//     if (await Permission.camera.isPermanentlyDenied ||
+//         await Permission.storage.isPermanentlyDenied) {
+//       // The user opted to never again see the permission request dialog for this
+//       // app. The only way to change the permission's status now is to let the
+//       // user manually enable it in the system settings.
+//       openAppSettings();
+//     } else {
+//       Map<Permission, PermissionStatus> statuses = await [
+//         Permission.camera,
+//         Permission.storage,
+//       ].request();
+// // You can request multiple permissions at once.
+//
+//       if (statuses[Permission.camera] == PermissionStatus.granted &&
+//           statuses[Permission.storage] == PermissionStatus.granted) {
+//         getImage(ImgSource.Both, context, i);
+//       } else {
+//         if (await Permission.camera.isDenied ||
+//             await Permission.storage.isDenied) {
+//           // The user opted to never again see the permission request dialog for this
+//           // app. The only way to change the permission's status now is to let the
+//           // user manually enable it in the system settings.
+//           openAppSettings();
+//         } else {
+//           setSnackbar("Oops you just denied the permission", context);
+//         }
+//       }
+//     }
+//   }
 
   File? _image,
       _finalImage,
@@ -1152,17 +1159,32 @@ class _MyProfilePageState extends State<MyProfilePage> {
       adharImage,
       insuranceImage,
       bankImage;
-  Future getImage(ImgSource source, BuildContext context, int i) async {
-    var image = await ImagePickerGC.pickImage(
-      context: context,
-      source: source, imageQuality: 30,
-      cameraIcon: Icon(
-        Icons.add,
-        color: Colors.red,
-      ), //cameraIcon and galleryIcon can change. If no icon provided default icon will be present
+
+  // Future getImage(ImgSource source, BuildContext context, int i) async {
+  //   var image = await ImagePickerGC.pickImage(
+  //     context: context,
+  //     source: source, imageQuality: 30,
+  //     cameraIcon: Icon(
+  //       Icons.add,
+  //       color: Colors.red,
+  //     ), //cameraIcon and galleryIcon can change. If no icon provided default icon will be present
+  //   );
+  //   getCropImage(context, i, image);
+  // }
+
+
+  final imagePicker = ImagePicker();
+  Future getImage(ImageSource source, BuildContext context, int i) async {
+    var image = await imagePicker.pickImage(
+      source: source,
+      //cameraIcon and galleryIcon can change. If no icon provided default icon will be present
     );
-    getCropImage(context, i, image);
+    setState(() {
+      _image = File(image?.path ?? '');
+      getCropImage(context, i, image);
+    });
   }
+
 
   void getCropImage(BuildContext context, int i, var image) async {
     File? croppedFile = await ImageCropper().cropImage(

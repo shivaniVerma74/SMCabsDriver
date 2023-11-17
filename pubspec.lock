@@ -590,13 +590,21 @@ packages:
     source: hosted
     version: "1.5.1"
   image_picker:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image_picker
-      sha256: b4f02353277b39f350093a2460b32b43eafaa3bfc4f92e8d90926698d8d78df6
+      sha256: "715d68a53d6bcc2eae26005097dc74c375a04c0d7c0e657da84deebbbbbf51ed"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.5+4"
+    version: "0.8.6+4"
+  image_picker_android:
+    dependency: transitive
+    description:
+      name: image_picker_android
+      sha256: "1ec6830289f5b6aeff3aa8239ea737c71950178dda389342dc2215adb06b4bd8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.6+20"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -605,14 +613,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.12"
-  image_picker_gallery_camera:
-    dependency: "direct main"
+  image_picker_ios:
+    dependency: transitive
     description:
-      name: image_picker_gallery_camera
-      sha256: "8fedbb3ed82f5bf39c1370234b092ccedf0e01a741cc68a36ba9ea2982d8ca01"
+      name: image_picker_ios
+      sha256: d779210bda268a03b57e923fb1e410f32f5c5e708ad256348bcbf1f44f558fd0
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.8.7+4"
   image_picker_platform_interface:
     dependency: transitive
     description:
@@ -1260,4 +1268,4 @@ packages:
     version: "3.1.1"
 sdks:
   dart: ">=2.18.0 <3.0.0"
-  flutter: ">=3.0.0"
+  flutter: ">=3.3.0"
