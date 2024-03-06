@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ import 'package:qcabs_driver/utils/colors.dart';
 import 'package:qcabs_driver/utils/constant.dart';
 import 'package:qcabs_driver/utils/widget.dart';
 import 'package:sizer/sizer.dart';
+import '../../WebviewExample.dart';
 import '../app_drawer.dart';
 
 class WalletPage extends StatefulWidget {
@@ -195,6 +197,49 @@ class _WalletPageState extends State<WalletPage> {
     return Future.value();
   }
 
+  String generateRandomTransactionID() {
+    var number = "";
+    var randomnumber = Random();
+    //chnage i < 15 on your digits need
+    for (var i = 0; i < 11; i++) {
+      number = number + randomnumber.nextInt(9).toString();
+    }
+    print("ECOM" + number);
+    number = "ECOM$number";
+    return number;
+  }
+
+  _initiateCcAvenuePayment(String? totalPrice) async {
+    // OrderModel model = OrderModel(listStatus: []);
+    try {
+      final amount = totalPrice.toString();
+      setState(() {
+        // _loading = true;
+        // errorText = "";
+      });
+      // initiatePayment("https://smcab.in/website/make_payment?order_id=${generateRandomTransactionID()}&amount=${amount.toString()}&user_id=${curUserId.toString()}",'');
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Paymentgetway(amount: amount.toString(),
+          orderid: generateRandomTransactionID(), url: "https://smcab.in/website/make_payment?order_id=${generateRandomTransactionID()}&amount=${amount.toString()}&user_id=${curUserId.toString()}&type=driver")));
+      // final response = await http.get(Uri.parse('https://smcab.in/website/make_payment?order_id=5479847345984498&amount=1&user_id=2'));
+      // print('_______response___${response.body}_________');
+      // final data = response.body;
+      // var data1 =jsonDecode(data);
+      // String url = data1["message"];
+      // String transactionId = data1['order_id'].toString();
+      // print('${response.body}_______dfkljd');
+      // initiatePayment(url,transactionId);
+      // setState(() {
+      //   // _loading = false;
+      // });
+    } catch (e) {
+      print(e.toString());
+      setState(() {
+        // _loading = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -337,21 +382,22 @@ class _WalletPageState extends State<WalletPage> {
                                 boxHeight(10),
                                 InkWell(
                                   onTap: () {
-                                    RazorPayHelper razorPay =
-                                        new RazorPayHelper(amount.text, context,
-                                            (result) {
-                                      if (result != "error") {
-                                        addWallet(result);
-                                      } else {
-                                        setState(() {
-                                          loading = false;
-                                        });
-                                      }
-                                    });
-                                    setState(() {
-                                      loading = true;
-                                    });
-                                    razorPay.init();
+                                    _initiateCcAvenuePayment(amount.text);
+                                    // RazorPayHelper razorPay =
+                                    //     new RazorPayHelper(amount.text, context,
+                                    //         (result) {
+                                    //   if (result != "error") {
+                                    //     addWallet(result);
+                                    //   } else {
+                                    //     setState(() {
+                                    //       loading = false;
+                                    //     });
+                                    //   }
+                                    // });
+                                    // setState(() {
+                                    //   loading = true;
+                                    // });
+                                    // razorPay.init();
                                   },
                                   child: Container(
                                     width: 80.w,
@@ -384,8 +430,8 @@ class _WalletPageState extends State<WalletPage> {
                       width: getWidth(330),
                       child: text(
                           totalBal < 500
-                              ? "Note-You need to add minimum \u{20B9}${minimumBal} to get booking request."
-                              : "Note-Please maintain \u{20B9}${minimumBal} minimum balance to take rides.",
+                              ? "Note-You need to add minimum \u{20B9}$minimumBal to get booking request."
+                              : "Note-Please maintain \u{20B9}$minimumBal minimum balance to take rides.",
                           fontSize: 10.sp,
                           fontFamily: fontMedium,
                           textColor: Colors.red),
