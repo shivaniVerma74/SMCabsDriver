@@ -43,6 +43,10 @@ android {
         checkReleaseBuilds false
     }
 
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
+
     aaptOptions {
         cruncherEnabled = false
     }

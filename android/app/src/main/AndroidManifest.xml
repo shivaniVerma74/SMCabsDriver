@@ -96,7 +96,7 @@
             android:value="high_importance_channel" />-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDPsdTq-a4AHYHSNvQsdAlZgWvRu11T9pM" />
+            android:value="AIzaSyA5n7J-0cLQGm_N0Cse8iVhsPlZN_PpfCQ" />
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~6300978111"/>

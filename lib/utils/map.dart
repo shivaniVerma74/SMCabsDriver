@@ -44,7 +44,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   // which generates every polyline between start and finish
   PolylinePoints polylinePoints = PolylinePoints();
   //todo change google map api
-  String googleAPIKey = "AIzaSyDPsdTq-a4AHYHSNvQsdAlZgWvRu11T9pM";
+  String googleAPIKey = "AIzaSyA5n7J-0cLQGm_N0Cse8iVhsPlZN_PpfCQ";
   // for my custom icons
   BitmapDescriptor? sourceIcon;
   BitmapDescriptor? destinationIcon;
